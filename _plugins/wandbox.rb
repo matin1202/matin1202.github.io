@@ -10,7 +10,7 @@ module Jekyll
 
   	<<~HTML
   	  <div class="wandbox-block my-6">
-    	  <pre id="#{@id}-code" class="language-cpp highlight"><code>#{code}</code></pre>
+    	  <pre id="#{@id}-code" class="language-cpp highlight"><code class="language-cpp">#{code}</code></pre>
      	 <button onclick="runWandbox('#{@id}')" class="mt-2 px-4 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">Run</button>
 
       	<table class="wandbox-table mt-4 w-full text-sm border border-gray-300">
