@@ -8,10 +8,16 @@ async function runWandbox(id) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        compiler: "clang-17.0.1",
         code: code,
-        compiler: "gnu++2a",
         options: "warning",
-        save: false
+        save: false,
+        switches: [
+          {
+            name: "std-cxx",
+            value: "c++2a"
+          }
+        ]
       })
     });
 
