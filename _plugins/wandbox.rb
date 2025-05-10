@@ -1,34 +1,21 @@
 module Jekyll
   class WandboxTag < Liquid::Block
-    def initialize(tag_name, text, tokens)
-      super
-      @id = text.strip.delete('"')
-    end
+    @@index = 0
 
     def render(context)
-  	code = super.strip.gsub(/</, '&lt;').gsub(/>/, '&gt;').gsub(/"/, '&quot;')
+      code = super.strip
+      index = (@@index += 1)
+      id = "wandbox-#{index}"
 
-  	<<~HTML
-  	  <div class="wandbox-block my-6">
-    	  <pre id="#{@id}-code" class="language-cpp highlight"><code class="language-cpp">#{code}</code></pre>
-     	 <button onclick="runWandbox('#{@id}')" class="mt-2 px-4 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">Run</button>
-
-      	<table class="wandbox-table mt-4 w-full text-sm border border-gray-300">
-    	    <thead class="bg-gray-100 text-left">
-         	 <tr>
-            	<th class="border border-gray-300 p-2">Type</th>
-       	     <th class="border border-gray-300 p-2">Output</th>
-        	  </tr>
-      	  </thead>
-      	  <tbody id="#{@id}-output">
-        	  <tr>
-        	    <td colspan="2" class="text-center p-2 text-gray-500">Not executed yet</td>
-       	   </tr>
-        	</tbody>
-      	</table>
-   	 </div>
-	  HTML
-	end
+      <<~HTML
+        <div class="wandbox-block">
+          <pre><code class="language-cpp" data-lang="cpp" id="#{id}-code">#{code.gsub('<', '&lt;').gsub('>', '&gt;')}</code></pre>
+          <button onclick="runWandbox('#{id}')">Run Code</button>
+          <div id="#{id}-type" class="wandbox-type" style="margin-top: 0.5em; font-weight: bold;"></div>
+          <pre id="#{id}-output" class="wandbox-output" style="background: #f8f8f8; padding: 0.5em;"></pre>
+        </div>
+      HTML
+    end
   end
 end
 
