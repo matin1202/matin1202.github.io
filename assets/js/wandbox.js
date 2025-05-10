@@ -9,8 +9,8 @@ async function runWandbox(id) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         code: code,
-        compiler: "gcc-13.2.0-cpp2a",
-        options: "warning,gnu++20",
+        compiler: "c++2a",
+        options: "warning",
         save: false
       })
     });
