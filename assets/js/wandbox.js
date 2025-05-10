@@ -1,67 +1,45 @@
 async function runWandbox(id) {
-  const code = document.getElementById(id + "-code").textContent.trim();
-  const outputEl = document.getElementById(id + "-output");
-  outputEl.innerHTML = "<tr><td colspan='2'>Running...</td></tr>";
+  const code = document.getElementById(`${id}-code`).textContent;
+
+  const body = {
+    code,
+    compiler: "clang-17.0.1",
+    options: "-O0 -std=c++2a",
+    save: false
+  };
 
   try {
     const res = await fetch("https://wandbox.org/api/compile.json", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        compiler: "clang-17.0.1",
-        code: code,
-        options: "warning",
-        save: false,
-        switches: [
-          {
-            name: "std-cxx",
-            value: "c++2a"
-          }
-        ]
-      })
+      body: JSON.stringify(body),
+      headers: { "Content-Type": "application/json" }
     });
 
-    let data;
-    const contentType = res.headers.get("content-type") || "";
-
-    // JSON 타입이 아닐 때도 JSON 형태 문자열일 수 있음
     const text = await res.text();
+
+    let result;
     try {
-      data = JSON.parse(text);
+      result = JSON.parse(text);
     } catch (e) {
-      alert("Wandbox 응답이 유효한 JSON이 아닙니다:\n\n" + text);
-      outputEl.innerHTML = `<tr><td colspan="2"><pre>${escapeHtml(text)}</pre></td></tr>`;
+      alert("Wandbox 응답 오류: " + text);
       return;
     }
 
-    outputEl.innerHTML = "";
+    const typeEl = document.getElementById(`${id}-type`);
+    const outputEl = document.getElementById(`${id}-output`);
 
-    if (data.compiler_output)
-      outputEl.innerHTML += `<tr><td>Compiler Output</td><td><pre>${escapeHtml(data.compiler_output)}</pre></td></tr>`;
-    if (data.program_output)
-      outputEl.innerHTML += `<tr><td>Program Output</td><td><pre>${escapeHtml(data.program_output)}</pre></td></tr>`;
-    if (data.compiler_error)
-      outputEl.innerHTML += `<tr><td>Compiler Error</td><td><pre>${escapeHtml(data.compiler_error)}</pre></td></tr>`;
-    if (data.program_error)
-      outputEl.innerHTML += `<tr><td>Runtime Error</td><td><pre>${escapeHtml(data.program_error)}</pre></td></tr>`;
-
-    if (
-      !data.compiler_output &&
-      !data.program_output &&
-      !data.compiler_error &&
-      !data.program_error
-    ) {
-      outputEl.innerHTML = "<tr><td colspan='2'>No output returned</td></tr>";
+    if (result.compiler_error) {
+      typeEl.textContent = "컴파일 에러";
+      outputEl.textContent = result.compiler_error;
+    } else if (result.program_error) {
+      typeEl.textContent = "런타임 에러";
+      outputEl.textContent = result.program_error;
+    } else {
+      typeEl.textContent = "성공";
+      outputEl.textContent = result.program_output;
     }
-  } catch (err) {
-    alert("에러 발생:\n\n" + err.toString());
-    outputEl.innerHTML = `<tr><td colspan="2"><pre>${escapeHtml(err.toString())}</pre></td></tr>`;
-  }
-}
 
-function escapeHtml(text) {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+  } catch (err) {
+    alert("요청 실패: " + err);
+  }
 }
