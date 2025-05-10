@@ -1,0 +1,21 @@
+.wandbox-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.9rem;
+}
+
+.wandbox-table th,
+.wandbox-table td {
+  border: 1px solid #ccc;
+  padding: 0.5em;
+}
+
+.wandbox-table thead {
+  background: #f7f7f7;
+}
+
+button {
+  font-family: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
