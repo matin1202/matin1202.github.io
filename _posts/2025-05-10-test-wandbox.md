@@ -27,3 +27,5 @@ int main() {
   return v.at(100); // 런타임 에러
 }
 {% endwandbox %}
+
+<script src="{{ '/assets/js/wandbox.js' | relative_url }}"></script>
