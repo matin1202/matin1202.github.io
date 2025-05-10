@@ -24,6 +24,7 @@ async function runWandbox(id) {
     let data;
     const contentType = res.headers.get("content-type") || "";
 
+    // JSON 타입이 아닐 때도 JSON 형태 문자열일 수 있음
     const text = await res.text();
     try {
       data = JSON.parse(text);
@@ -52,9 +53,6 @@ async function runWandbox(id) {
     ) {
       outputEl.innerHTML = "<tr><td colspan='2'>No output returned</td></tr>";
     }
-
-    // 하이라이팅 적용
-    Prism.highlightAll();
   } catch (err) {
     alert("에러 발생:\n\n" + err.toString());
     outputEl.innerHTML = `<tr><td colspan="2"><pre>${escapeHtml(err.toString())}</pre></td></tr>`;
