@@ -2,7 +2,7 @@ module Jekyll
   class WandboxTag < Liquid::Block
     def initialize(tag_name, text, tokens)
       super
-      @id = text.strip
+      @id = text.strip.delete('"')
     end
 
     def render(context)
