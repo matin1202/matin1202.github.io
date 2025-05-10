@@ -7,8 +7,6 @@ categories: [Programming, C++]
 tags: [Programming, C++]
 ---
 
-- [연결된 자료 구조](#연결된-자료-구조)
-	- [연결 리스트](#연결-리스트)
 
 # 연결된 자료 구조
 
