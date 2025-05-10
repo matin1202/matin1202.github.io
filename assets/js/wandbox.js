@@ -21,15 +21,19 @@ async function runWandbox(id) {
       })
     });
 
+    let data;
     const contentType = res.headers.get("content-type") || "";
-    if (!contentType.includes("application/json")) {
-      const text = await res.text();
-      alert("Wandbox에서 JSON이 아닌 응답을 반환했습니다:\n\n" + text);
+
+    // JSON 타입이 아닐 때도 JSON 형태 문자열일 수 있음
+    const text = await res.text();
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      alert("Wandbox 응답이 유효한 JSON이 아닙니다:\n\n" + text);
       outputEl.innerHTML = `<tr><td colspan="2"><pre>${escapeHtml(text)}</pre></td></tr>`;
       return;
     }
 
-    const data = await res.json();
     outputEl.innerHTML = "";
 
     if (data.compiler_output)
