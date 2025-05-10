@@ -1,4 +1,3 @@
-
 ---
 title: C++ 기초
 author: matin1202
