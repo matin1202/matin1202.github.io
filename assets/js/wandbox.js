@@ -26,7 +26,7 @@ async function runWandbox(id) {
   const body = {
     code,
     compiler: "clang-17.0.1",
-    options: "-O2 -std=c++2a",
+    options: "-O0 -std=c++2a",
     save: false
   };
 
