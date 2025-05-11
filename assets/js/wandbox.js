@@ -80,6 +80,13 @@
       overflow: auto;
       transition: all 0.3s ease;
     }
+    
+    .wandbox-copy {
+  	background-color: #475569;
+	}
+	.wandbox-copy:hover {
+	  background-color: #334155;
+	}
   `;
   document.head.appendChild(style);
 })();
@@ -142,4 +149,17 @@ async function runWandbox(id) {
     runBtn.disabled = false;
     loading.style.display = "none";
   }
+}
+
+function wandboxCopy(id) {
+  const codeEl = document.querySelector(`#${id} code`);
+  if (!codeEl) return;
+
+  const text = codeEl.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    const button = document.querySelector(`#${id} .wandbox-copy`);
+    const original = button.innerHTML;
+    button.innerHTML = "✔ Copied!";
+    setTimeout(() => button.innerHTML = original, 1500);
+  });
 }
