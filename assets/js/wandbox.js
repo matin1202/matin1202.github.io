@@ -1,6 +1,17 @@
 async function runWandbox(id) {
   const code = document.getElementById(`${id}-code`).textContent;
 
+  const runBtn = document.getElementById(`${id}-run`);
+  const loading = document.getElementById(`${id}-loading`);
+  const typeEl = document.getElementById(`${id}-type`);
+  const outputEl = document.getElementById(`${id}-output`);
+
+  runBtn.disabled = true;
+  loading.style.display = "inline";
+  typeEl.textContent = "";
+  outputEl.textContent = "";
+  typeEl.className = "wandbox-type";
+
   const body = {
     code,
     compiler: "clang-17.0.1",
@@ -25,13 +36,6 @@ async function runWandbox(id) {
       return;
     }
 
-    const typeEl = document.getElementById(`${id}-type`);
-    const outputEl = document.getElementById(`${id}-output`);
-
-    // 초기화
-    typeEl.className = 'wandbox-type';
-    outputEl.textContent = '';
-
     if (result.compiler_error) {
       typeEl.textContent = "컴파일 에러";
       typeEl.classList.add("compile-error");
@@ -48,5 +52,8 @@ async function runWandbox(id) {
 
   } catch (err) {
     alert("Wandbox 요청 실패:\n\n" + err);
+  } finally {
+    runBtn.disabled = false;
+    loading.style.display = "none";
   }
 }
