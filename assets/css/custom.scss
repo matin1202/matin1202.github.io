@@ -1,13 +1,13 @@
 ---
 ---
 
-.wandbox-block {
-  border: 1px solid var(--main-border-color, #e2e8f0);
+html[data-theme="dark"] .wandbox-block, .wandbox-block {
+  border: 1px solid var(--main-border-color, #dee2e6);
   border-radius: 0.5rem;
   margin: 1.5em 0;
   padding: 1em;
-  background-color: var(--bg-color, #ffffff);
-  color: var(--text-color, #1f2937);
+  background-color: var(--main-bg-color, #ffffff);
+  color: var(--text-color, #212529);
 }
 
 .wandbox-controls {
@@ -17,10 +17,10 @@
   align-items: center;
 }
 
-.wandbox-controls button {
+html[data-theme="dark"] .wandbox-controls button, .wandbox-controls button {
   padding: 0.4em 0.8em;
-  background-color: #2563eb;
-  color: white;
+  background-color: var(--button-bg-color, #007bff);
+  color: var(--button-text-color, white);
   border: none;
   border-radius: 0.3em;
   cursor: pointer;
@@ -28,49 +28,55 @@
   transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
-.wandbox-controls button:hover {
-  background-color: #1d4ed8;
+html[data-theme="dark"] .wandbox-controls button:hover, .wandbox-controls button:hover {
+  background-color: var(--button-hover-bg-color, #0056b3);
   transform: scale(1.02);
 }
 
-.wandbox-controls button:disabled {
-  background-color: #94a3b8;
+html[data-theme="dark"] .wandbox-controls button:disabled, .wandbox-controls button:disabled {
+  background-color: var(--button-disabled-bg-color, #adb5bd);
+  color: var(--button-disabled-text-color, #6c757d);
   cursor: not-allowed;
   transform: none;
 }
 
-.wandbox-loading {
+html[data-theme="dark"] .wandbox-loading, .wandbox-loading {
   font-size: 0.9em;
-  color: var(--text-muted-color, #6b7280);
+  color: var(--text-muted-color, #6c757d);
   animation: pulse 1.5s infinite ease-in-out;
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
 }
 
-.wandbox-type {
+html[data-theme="dark"] .wandbox-type, .wandbox-type {
   font-weight: bold;
   margin-top: 1em;
-  color: var(--text-color, #1f2937);
+  color: var(--text-color, #212529);
 }
 
-.wandbox-type.success {
-  color: #4ade80;
+html[data-theme="dark"] .wandbox-type.success, .wandbox-type.success {
+  color: var(--success-color, #28a745);
 }
 
-.wandbox-type.compile-error {
-  color: #f87171;
+html[data-theme="dark"] .wandbox-type.compile-error, .wandbox-type.compile-error {
+  color: var(--danger-color, #dc3545);
 }
 
-.wandbox-type.runtime-error {
-  color: #fbbf24;
+html[data-theme="dark"] .wandbox-type.runtime-error, .wandbox-type.runtime-error {
+  color: var(--warning-color, #ffc107);
 }
 
-.wandbox-output {
-  background-color: var(--code-bg-color, #1e293b);
-  color: var(--code-text-color, #e2e8f0);
+html[data-theme="dark"] .wandbox-output, .wandbox-output {
+  background-color: var(--code-bg-color, #f8f9fa);
+  color: var(--code-text-color, #212529);
+  border: 1px solid var(--code-border-color, #dee2e6);
   padding: 0.8em;
   margin-top: 0.3em;
   border-radius: 0.4em;
@@ -81,38 +87,43 @@
   overflow: auto;
 }
 
-.wandbox-header {
+html[data-theme="dark"] .wandbox-header, .wandbox-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding-bottom: 0.8em;
   margin-bottom: 0.5em;
-  border-bottom: 1px solid var(--main-border-color, #e2e8f0);
+  border-bottom: 1px solid var(--main-border-color, #dee2e6);
 }
 
-.wandbox-title {
+html[data-theme="dark"] .wandbox-title, .wandbox-title {
   font-size: 1.05em;
   font-weight: 600;
-  color: var(--text-color, #1f2937);
+  color: var(--text-color, #212529);
 }
 
-.wandbox-copy-btn {
+html[data-theme="dark"] .wandbox-copy-btn, .wandbox-copy-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.4em;
   padding: 0.35em 0.7em;
   background-color: transparent;
-  color: var(--text-muted-color, #6b7280);
-  border: 1px solid var(--main-border-color, #e2e8f0);
+  color: var(--link-color, #007bff);
+  border: 1px solid var(--link-color, #007bff);
   border-radius: 0.3em;
   cursor: pointer;
   font-size: 0.85em;
   transition: all 0.2s ease-in-out;
 }
 
-.wandbox-copy-btn:hover {
-  color: var(--text-color, #1f2937);
-  border-color: var(--text-color, #1f2937);
+.wandbox-copy-btn svg {
+  fill: currentColor;
+}
+
+html[data-theme="dark"] .wandbox-copy-btn:hover, .wandbox-copy-btn:hover {
+  color: var(--link-hover-color, #0056b3);
+  border-color: var(--link-hover-color, #0056b3);
+  background-color: var(--button-subtle-hover-bg-color, rgba(0, 123, 255, 0.1));
   transform: translateY(-1px);
 }
 
@@ -124,14 +135,82 @@
 .wandbox-copy-btn.copying {
 }
 
-.wandbox-copy-btn.copied svg {
-}
-
 .wandbox-copy-btn.copying svg {
   animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+html[data-theme="dark"] {
+  .wandbox-block {
+    border-color: var(--main-border-color, #495057);
+    background-color: var(--main-bg-color, #212529);
+    color: var(--text-color, #f8f9fa);
+  }
+
+  .wandbox-controls button {
+    background-color: var(--button-bg-color, #0d6efd);
+    color: var(--button-text-color, #e9ecef);
+  }
+
+  .wandbox-controls button:hover {
+    background-color: var(--button-hover-bg-color, #0b5ed7);
+  }
+
+  .wandbox-controls button:disabled {
+    background-color: var(--button-disabled-bg-color, #343a40);
+    color: var(--button-disabled-text-color, #6c757d);
+  }
+
+  .wandbox-loading {
+    color: var(--text-muted-color, #adb5bd);
+  }
+
+  .wandbox-type {
+    color: var(--text-color, #f8f9fa);
+  }
+
+  .wandbox-type.success {
+    color: var(--success-color, #198754);
+  }
+
+  .wandbox-type.compile-error {
+    color: var(--danger-color, #dc3545);
+  }
+
+  .wandbox-type.runtime-error {
+    color: var(--warning-color, #ffc107);
+  }
+
+  .wandbox-output {
+    background-color: var(--code-bg-color, #0f172a);
+    color: var(--code-text-color, #e9ecef);
+    border-color: var(--code-border-color, #343a40);
+  }
+
+  .wandbox-header {
+    border-bottom-color: var(--main-border-color, #495057);
+  }
+
+  .wandbox-title {
+    color: var(--text-color, #f8f9fa);
+  }
+
+  .wandbox-copy-btn {
+    color: var(--link-color, #0d6efd);
+    border-color: var(--link-color, #0d6efd);
+  }
+
+  .wandbox-copy-btn:hover {
+    color: var(--link-hover-color, #3d8bfd);
+    border-color: var(--link-hover-color, #3d8bfd);
+    background-color: var(--button-subtle-hover-bg-color, rgba(13, 110, 253, 0.15));
+  }
 }
