@@ -8,7 +8,7 @@ module Jekyll
       id = "wandbox-#{index}"
 
       <<~HTML
-        <div class="wandbox-block highlight">
+        <div class="wandbox-block">
           <pre><code class="language-cpp" data-lang="cpp" id="#{id}-code">#{code.gsub('<', '&lt;').gsub('>', '&gt;')}</code></pre>
 
           <div class="wandbox-controls">
