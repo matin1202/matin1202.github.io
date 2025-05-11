@@ -45,11 +45,6 @@
     animation: pulse 1.5s infinite ease-in-out;
   }
 
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
-  }
-
   .wandbox-type {
     font-weight: bold;
     margin-top: 1em;
@@ -134,7 +129,37 @@
     animation: spin 1s linear infinite;
   }
 
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+  .wandbox-stdin-container {
+    margin-top: 0.8em;
+    margin-bottom: 0.8em;
   }
+
+  .wandbox-stdin-label {
+    display: block;
+    margin-bottom: 0.4em;
+    font-size: 0.85em;
+    font-weight: 500;
+    color: #8b949e;
+  }
+
+  .wandbox-stdin-input {
+    width: 100%;
+    padding: 0.6em 0.8em;
+    border-radius: 0.3em;
+    border: 1px solid #30363d;
+    background-color: #010409;
+    color: #c9d1d9;
+    font-family: monospace;
+    font-size: 0.9em;
+    line-height: 1.4;
+    resize: vertical;
+    min-height: 40px;
+    box-sizing: border-box;
+  }
+
+  .wandbox-stdin-input:focus {
+    border-color: #2f81f7;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(47, 129, 247, 0.3);
+  }
+

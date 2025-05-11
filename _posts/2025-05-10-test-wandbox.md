@@ -27,3 +27,22 @@ int main() {
   return v.at(100); // 런타임 에러
 }
 {% endwandbox %}
+
+{% wandbox title="stdin" stdin_placeholder="여기에 이름 나이를 입력하세요..." %}
+#include <iostream>
+#include <string>
+
+int main() {
+  std::string name;
+  int age;
+
+  std::cout << "Enter your name: \n"; // 이 프롬프트는 stdin 입력창에 직접 나타나지 않습니다.
+  std::cin >> name;                 // stdin 입력창의 첫 번째 단어를 읽음
+
+  std::cout << "Enter your age: \n";
+  std::cin >> age;                  // stdin 입력창의 다음 숫자를 읽음
+
+  std::cout << "Hello, " << name << "! You are " << age << " years old." << std::endl;
+  return 0;
+}
+{% endwandbox %}
