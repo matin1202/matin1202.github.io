@@ -83,3 +83,63 @@
   `;
   document.head.appendChild(style);
 })();
+
+async function runWandbox(id) {
+  const code = document.getElementById(`${id}-code`).textContent;
+
+  const runBtn = document.getElementById(`${id}-run`);
+  const loading = document.getElementById(`${id}-loading`);
+  const typeEl = document.getElementById(`${id}-type`);
+  const outputEl = document.getElementById(`${id}-output`);
+
+  runBtn.disabled = true;
+  loading.style.display = "inline";
+  typeEl.textContent = "";
+  outputEl.textContent = "";
+  typeEl.className = "wandbox-type";
+
+  const body = {
+    code,
+    compiler: "clang-17.0.1",
+    options: "-O2 -std=c++2a",
+    save: false
+  };
+
+  try {
+    const res = await fetch("https://wandbox.org/api/compile.json", {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: { "Content-Type": "application/json" }
+    });
+
+    const text = await res.text();
+
+    let result;
+    try {
+      result = JSON.parse(text);
+    } catch (e) {
+      alert("Wandbox 응답 오류:\n\n" + text);
+      return;
+    }
+
+    if (result.compiler_error) {
+      typeEl.textContent = "컴파일 에러";
+      typeEl.classList.add("compile-error");
+      outputEl.textContent = result.compiler_error;
+    } else if (result.program_error) {
+      typeEl.textContent = "런타임 에러";
+      typeEl.classList.add("runtime-error");
+      outputEl.textContent = result.program_error;
+    } else {
+      typeEl.textContent = "성공";
+      typeEl.classList.add("success");
+      outputEl.textContent = result.program_output;
+    }
+
+  } catch (err) {
+    alert("Wandbox 요청 실패:\n\n" + err);
+  } finally {
+    runBtn.disabled = false;
+    loading.style.display = "none";
+  }
+}
