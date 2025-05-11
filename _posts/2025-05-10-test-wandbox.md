@@ -6,7 +6,7 @@ tags: [C++, Wandbox, Chirpy]
 
 다음은 Wandbox와 연동된 테스트입니다.
 
-{% wandbox "hello-wandbox" %}
+{% wandbox title="hello-wandbox" %}
 #include <iostream>
 int main() {
   std::cout << "Hello from Wandbox!" << std::endl;
@@ -14,13 +14,13 @@ int main() {
 }
 {% endwandbox %}
 
-{% wandbox "compile-error" %}
+{% wandbox title="compile-error" %}
 int main() {
   undeclared_variable += 1; // 컴파일 에러
 }
 {% endwandbox %}
 
-{% wandbox "runtime-error" %}
+{% wandbox title="runtime-error" %}
 #include <vector>
 int main() {
   std::vector<int> v;
