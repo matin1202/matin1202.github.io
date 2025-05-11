@@ -1,28 +1,48 @@
 .wandbox-block {
-  margin-top: 1em;
-  margin-bottom: 2em;
   border: 1px solid var(--main-border-color);
   border-radius: 0.5rem;
+  margin: 1.5em 0;
   padding: 1em;
-  background-color: var(--bg-color); // 다크/라이트 모두 대응
+  background-color: var(--bg-color);
 }
 
-.wandbox-block pre {
-  background-color: var(--highlight-bg-color);
-  color: var(--highlight-text-color);
-  padding: 0.75em;
-  border-radius: 0.5rem;
-  overflow-x: auto;
+.wandbox-controls {
+  margin-top: 0.5em;
+  display: flex;
+  gap: 1em;
+  align-items: center;
+}
+
+.wandbox-controls button {
+  padding: 0.4em 0.8em;
+  background-color: #2563eb; // blue-600
+  color: white;
+  border: none;
+  border-radius: 0.3em;
+  cursor: pointer;
   font-size: 0.9em;
+  transition: background-color 0.2s ease;
+}
+
+.wandbox-controls button:hover {
+  background-color: #1d4ed8; // blue-700
+}
+
+.wandbox-controls button:disabled {
+  background-color: #94a3b8; // gray-400
+  cursor: not-allowed;
+}
+
+.wandbox-loading {
+  font-size: 0.9em;
+  color: #facc15; // yellow-400
 }
 
 .wandbox-type {
-  margin-top: 0.5em;
   font-weight: bold;
-  font-size: 0.95em;
+  margin-top: 1em;
 }
 
-/* 결과 유형에 따라 색상 */
 .wandbox-type.success {
   color: #4ade80; // green-400
 }
@@ -35,13 +55,12 @@
   color: #facc15; // yellow-400
 }
 
-/* 결과 출력 */
 .wandbox-output {
-  margin-top: 0.25em;
-  white-space: pre-wrap;
-  background-color: #1f2937; // gray-800
-  color: #e5e7eb; // gray-100
-  border-radius: 0.5rem;
-  padding: 0.5em;
+  background-color: #1e293b; // slate-800
+  color: #e2e8f0; // slate-100
+  padding: 0.8em;
+  margin-top: 0.3em;
+  border-radius: 0.4em;
   font-family: monospace;
+  white-space: pre-wrap;
 }
