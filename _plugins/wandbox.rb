@@ -23,6 +23,6 @@ module Jekyll
       HTML
     end
   end
-end 
+end
 
 Liquid::Template.register_tag('wandbox', Jekyll::WandboxTag)
