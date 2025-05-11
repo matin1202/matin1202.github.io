@@ -84,6 +84,21 @@
   document.head.appendChild(style);
 })();
 
+document.addEventListener('DOMContentLoaded', function() {
+  // Wandbox 플러그인으로 생성된 모든 코드 블록을 선택합니다.
+  // <pre><code class="language-cpp" data-lang="cpp" id="wandbox-X-code">...</code></pre> 구조를 따릅니다.
+  const wandboxCodeBlocks = document.querySelectorAll('pre code[id^="wandbox-"][id$="-code"].language-cpp');
+
+  if (typeof Prism !== 'undefined') {
+    wandboxCodeBlocks.forEach((block) => {
+      Prism.highlightElement(block);
+    });
+    console.log('Prism.js highlighting applied to Wandbox code blocks.');
+  } else {
+    console.warn('Prism.js library not found. Wandbox code highlighting may not work.');
+  }
+});
+
 async function runWandbox(id) {
   const code = document.getElementById(`${id}-code`).textContent;
 
