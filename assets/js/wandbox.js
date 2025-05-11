@@ -67,7 +67,7 @@ async function runWandbox(id) {
       let compilerMessages = "";
       if(result.compiler_error) compilerMessages += "Error:\n" + result.compiler_error + "\n";
       if(result.compiler_warning) compilerMessages += "Warning:\n" + result.compiler_warning + "\n";
-      if(result.compiler_message) compilerMessages += "Message:\n" + result.compiler_message + "\n";
+      // if(result.compiler_message) compilerMessages += "Message:\n" + result.compiler_message + "\n";
       
       outputEl.textContent = compilerMessages.trim();
 
