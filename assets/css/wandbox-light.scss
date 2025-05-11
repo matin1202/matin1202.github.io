@@ -1,6 +1,3 @@
-
-
-html:not([data-theme="dark"]) {
   .wandbox-block {
     border: 1px solid #d0d7de;
     border-radius: 0.5rem;
@@ -130,4 +127,3 @@ html:not([data-theme="dark"]) {
   .wandbox-copy-btn.copying svg {
     animation: spin 1s linear infinite;
   }
-}
