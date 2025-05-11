@@ -1,0 +1,134 @@
+---
+---
+
+html:not([data-theme="dark"]) {
+  .wandbox-block {
+    border: 1px solid #d0d7de;
+    border-radius: 0.5rem;
+    margin: 1.5em 0;
+    padding: 1em;
+    background-color: #ffffff;
+    color: #24292f;
+  }
+
+  .wandbox-controls {
+    margin-top: 0.5em;
+    display: flex;
+    gap: 1em;
+    align-items: center;
+  }
+
+  .wandbox-controls button {
+    padding: 0.4em 0.8em;
+    background-color: #0969da;
+    color: #ffffff;
+    border: 1px solid #1b1f2426;
+    border-radius: 0.3em;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+  }
+
+  .wandbox-controls button:hover {
+    background-color: #0a5cc1;
+    transform: scale(1.02);
+  }
+
+  .wandbox-controls button:disabled {
+    background-color: #f6f8fa;
+    color: #8c959f;
+    border-color: #1b1f2426;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .wandbox-loading {
+    font-size: 0.9em;
+    color: #57606a;
+    animation: pulse 1.5s infinite ease-in-out;
+  }
+
+  .wandbox-type {
+    font-weight: bold;
+    margin-top: 1em;
+    color: #24292f;
+  }
+
+  .wandbox-type.success {
+    color: #1a7f37;
+  }
+
+  .wandbox-type.compile-error {
+    color: #cf222e;
+  }
+
+  .wandbox-type.runtime-error {
+    color: #9a6700;
+  }
+
+  .wandbox-output {
+    background-color: #f6f8fa;
+    color: #24292f;
+    border: 1px solid #d0d7de;
+    padding: 0.8em;
+    margin-top: 0.3em;
+    border-radius: 0.4em;
+    font-family: monospace;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    max-height: 400px;
+    overflow: auto;
+  }
+
+  .wandbox-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 0.8em;
+    margin-bottom: 0.5em;
+    border-bottom: 1px solid #d0d7de;
+  }
+
+  .wandbox-title {
+    font-size: 1.05em;
+    font-weight: 600;
+    color: #24292f;
+  }
+
+  .wandbox-copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    padding: 0.35em 0.7em;
+    background-color: #f6f8fa;
+    color: #57606a;
+    border: 1px solid #1b1f2426;
+    border-radius: 0.3em;
+    cursor: pointer;
+    font-size: 0.85em;
+    transition: all 0.2s ease-in-out;
+  }
+
+  .wandbox-copy-btn svg {
+    fill: currentColor;
+  }
+
+  .wandbox-copy-btn:hover {
+    color: #24292f;
+    border-color: #8c959f;
+    background-color: #eaeef2;
+    transform: translateY(-1px);
+  }
+
+  .wandbox-copy-btn:active {
+    transform: translateY(0px);
+  }
+
+  .wandbox-copy-btn.copied,
+  .wandbox-copy-btn.copying {
+  }
+
+  .wandbox-copy-btn.copying svg {
+    animation: spin 1s linear infinite;
+  }
+}
