@@ -51,15 +51,15 @@ async function runWandbox(id) {
     }
 
     if (result.compiler_error) {
-      typeEl.textContent = "컴파일 에러";
+      typeEl.textContent = "Compiler Error: ";
       typeEl.classList.add("compile-error");
       outputEl.textContent = result.compiler_error;
     } else if (result.program_error) {
-      typeEl.textContent = "런타임 에러";
+      typeEl.textContent = "Runtime Error: ";
       typeEl.classList.add("runtime-error");
       outputEl.textContent = result.program_error;
     } else {
-      typeEl.textContent = "성공";
+      typeEl.textContent = "System Output: ";
       typeEl.classList.add("success");
       outputEl.textContent = result.program_output;
     }
