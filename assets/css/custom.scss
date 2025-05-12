@@ -52,13 +52,18 @@ pre[id$="-code-pre"].folded {
   position: relative;
   margin-top: 0.5em; 
 }
+.wandbox-code-wrapper pre,
+.wandbox-code-wrapper pre code {
+  font-size: 0.7em;
+}
+
 
 .wandbox-copy-btn {
   position: absolute;
   top: 0.5em;
   right: 0.5em;
   z-index: 10;
-  padding: 0.2em;
+  padding: 0.4em;
   width: 2.5em; 
   height: 2.5em;
   display: inline-flex; 
@@ -78,8 +83,8 @@ pre[id$="-code-pre"].folded {
 
 .wandbox-copy-btn svg {
   fill: currentColor;
-  width: 2.8em; 
-  height: 2.8em;
+  width: 2em; 
+  height: 2em;
 }
 
 .wandbox-copy-btn:hover {

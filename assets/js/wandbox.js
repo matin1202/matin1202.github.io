@@ -82,18 +82,28 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 async function runWandbox(id_prefix) {
-  const codeElement = document.getElementById(`${id_prefix}-code`);
+  const wandboxBlockElement = document.getElementById(id_prefix);
   const stdinTextarea = document.getElementById(`${id_prefix}-stdin`);
   const runBtn = document.getElementById(`${id_prefix}-run`);
   const loading = document.getElementById(`${id_prefix}-loading`);
   const typeEl = document.getElementById(`${id_prefix}-type`);
   const outputEl = document.getElementById(`${id_prefix}-output`);
 
-  if (!codeElement || !runBtn || !loading || !typeEl || !outputEl) {
+  if (!wandboxBlockElement || !runBtn || !loading || !typeEl || !outputEl) {
     return;
   }
+  
+  const codeForApi = wandboxBlockElement.dataset.codeForApi;
 
-  const code = codeElement.textContent;
+  if (typeof codeForApi === 'undefined') {
+    typeEl.textContent = "Internal Error";
+    typeEl.classList.add("compile-error");
+    outputEl.textContent = "Code for API not found in data attribute.";
+    runBtn.disabled = false;
+    loading.style.display = "none";
+    return;
+  }
+  
   const stdinValue = stdinTextarea ? stdinTextarea.value : "";
 
   runBtn.disabled = true;
@@ -103,12 +113,14 @@ async function runWandbox(id_prefix) {
   typeEl.className = "wandbox-type";
 
   const body = {
-    code,
+    code: codeForApi,
     compiler: "clang-17.0.1",
     options: "-O0 -std=c++2a",
     stdin: stdinValue,
     save: false
   };
+  
+  console.log("Wandbox API Request Body:", JSON.stringify(body, null, 2));
 
   try {
     const res = await fetch("https://wandbox.org/api/compile.json", {
@@ -240,4 +252,3 @@ async function copyWandboxCode(id_prefix) {
     }
   }
 }
-
