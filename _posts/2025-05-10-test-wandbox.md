@@ -20,7 +20,7 @@ int main() {
 }
 {% endwandbox %}
 
-{% wandbox title="runtime-error" %}
+{% wandbox title="runtime-error" stdin_visible="true" %}
 #include <vector>
 int main() {
   std::vector<int> v;
@@ -28,7 +28,7 @@ int main() {
 }
 {% endwandbox %}
 
-{% wandbox title="stdin" stdin_placeholder="여기에 이름 나이를 입력하세요..." %}
+{% wandbox title="stdin" stdin_placeholder="여기에 이름 나이를 입력하세요..." stdin_value="Alice 20" %}
 #include <iostream>
 #include <string>
 
@@ -46,3 +46,12 @@ int main() {
   return 0;
 }
 {% endwandbox %}
+
+```cpp
+import std.core;
+
+int main(){
+  std::cout << "Hello, World!\n";
+  return 0;
+}
+```

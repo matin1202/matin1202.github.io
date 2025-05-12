@@ -1,34 +1,100 @@
-(function() {
-  const style = document.createElement("style");
-  style.textContent = ``;
-  if (style.textContent.trim() !== "") {
-    document.head.appendChild(style);
+const CHEVRON_UP_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em" style="vertical-align: middle;"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>`;
+const CHEVRON_DOWN_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em" style="vertical-align: middle;"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>`;
+const copyIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>`;
+const successIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em" style="vertical-align: middle;"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>`;
+const loadingIconSVG = `<svg class="copy-loading-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em" style="vertical-align: middle; animation: spin 1s linear infinite;"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>`;
+
+
+function setFoldButtonIcon(foldBtn, isFolded, animate) {
+  if (!foldBtn) return;
+  const newIcon = isFolded ? CHEVRON_DOWN_SVG : CHEVRON_UP_SVG;
+  
+  if (animate) {
+    foldBtn.classList.add('icon-swapping');
+    setTimeout(() => {
+      foldBtn.innerHTML = newIcon;
+      foldBtn.classList.remove('icon-swapping');
+    }, 150);
+  } else {
+    foldBtn.innerHTML = newIcon;
   }
-})();
+}
+
+function setupWandboxFoldButton(foldBtn, preElement) {
+  if (!foldBtn || !preElement) return;
+
+  const codeWrapper = preElement.parentElement;
+  const copyBtn = codeWrapper ? codeWrapper.querySelector('.wandbox-copy-btn') : null;
+  const isInitiallyFolded = preElement.classList.contains('folded');
+
+  setFoldButtonIcon(foldBtn, isInitiallyFolded, false);
+
+  if (isInitiallyFolded) {
+    foldBtn.setAttribute('aria-expanded', 'false');
+    if (copyBtn) copyBtn.style.display = 'none';
+  } else {
+    foldBtn.setAttribute('aria-expanded', 'true');
+    if (copyBtn) copyBtn.style.display = 'inline-flex';
+  }
+}
+
+function toggleWandboxCode(id_prefix) {
+  const foldBtn = document.getElementById(`${id_prefix}-fold-btn`);
+  const preElement = document.getElementById(`${id_prefix}-code-pre`);
+  if (!foldBtn || !preElement) return;
+
+  const codeWrapper = preElement.parentElement;
+  const copyBtn = codeWrapper ? codeWrapper.querySelector('.wandbox-copy-btn') : null;
+  
+  preElement.classList.toggle('folded');
+  const isNowFolded = preElement.classList.contains('folded');
+  
+  setFoldButtonIcon(foldBtn, isNowFolded, true);
+
+  if (isNowFolded) {
+    foldBtn.setAttribute('aria-expanded', 'false');
+    if (copyBtn) copyBtn.style.display = 'none';
+  } else {
+    foldBtn.setAttribute('aria-expanded', 'true');
+    if (copyBtn) copyBtn.style.display = 'inline-flex';
+  }
+}
 
 document.addEventListener('DOMContentLoaded', function() {
-  const codeBlocks = document.querySelectorAll('pre code[id$="-code"]');
-  codeBlocks.forEach((block) => {
+  const codeBlocksForPrism = document.querySelectorAll('pre code[id$="-code"]');
+  codeBlocksForPrism.forEach((block) => {
     if (typeof Prism !== 'undefined') {
       Prism.highlightElement(block);
     }
   });
+
+  const wandboxFoldButtons = document.querySelectorAll('.wandbox-fold-btn');
+  wandboxFoldButtons.forEach(foldBtn => {
+    const preElementId = foldBtn.getAttribute('aria-controls');
+    if (preElementId) {
+      const preElement = document.getElementById(preElementId);
+      if (preElement) {
+        setupWandboxFoldButton(foldBtn, preElement);
+      }
+    }
+  });
 });
 
-async function runWandbox(id) {
-  const codeElement = document.getElementById(`${id}-code`);
-  const stdinTextarea = document.getElementById(`${id}-stdin`);
-  const runBtn = document.getElementById(`${id}-run`);
-  const loading = document.getElementById(`${id}-loading`);
-  const typeEl = document.getElementById(`${id}-type`);
-  const outputEl = document.getElementById(`${id}-output`);
 
-  if (!codeElement || !stdinTextarea || !runBtn || !loading || !typeEl || !outputEl) {
+async function runWandbox(id_prefix) {
+  const codeElement = document.getElementById(`${id_prefix}-code`);
+  const stdinTextarea = document.getElementById(`${id_prefix}-stdin`);
+  const runBtn = document.getElementById(`${id_prefix}-run`);
+  const loading = document.getElementById(`${id_prefix}-loading`);
+  const typeEl = document.getElementById(`${id_prefix}-type`);
+  const outputEl = document.getElementById(`${id_prefix}-output`);
+
+  if (!codeElement || !runBtn || !loading || !typeEl || !outputEl) {
     return;
   }
 
   const code = codeElement.textContent;
-  const stdinValue = stdinTextarea.value;
+  const stdinValue = stdinTextarea ? stdinTextarea.value : "";
 
   runBtn.disabled = true;
   loading.style.display = "inline";
@@ -39,7 +105,7 @@ async function runWandbox(id) {
   const body = {
     code,
     compiler: "clang-17.0.1",
-    options: "-O2 -std=c++2a",
+    options: "-O0 -std=c++2a",
     stdin: stdinValue,
     save: false
   };
@@ -67,7 +133,6 @@ async function runWandbox(id) {
       let compilerMessages = "";
       if(result.compiler_error) compilerMessages += "Error:\n" + result.compiler_error + "\n";
       if(result.compiler_warning) compilerMessages += "Warning:\n" + result.compiler_warning + "\n";
-      // if(result.compiler_message) compilerMessages += "Message:\n" + result.compiler_message + "\n";
       
       outputEl.textContent = compilerMessages.trim();
 
@@ -106,42 +171,45 @@ async function runWandbox(id) {
   }
 }
 
-async function copyWandboxCode(id) {
-  const codeElement = document.getElementById(`${id}-code`);
-  const copyBtn = document.getElementById(`${id}-copy-btn`);
+async function copyWandboxCode(id_prefix) {
+  const codeElement = document.getElementById(`${id_prefix}-code`);
+  const copyBtn = document.getElementById(`${id_prefix}-copy-btn`);
   
   if (!codeElement || !copyBtn) {
     return;
   }
 
-  const originalButtonContent = copyBtn.innerHTML;
-  const successIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em" style="vertical-align: middle;"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>`;
-  const loadingIconSVG = `<svg class="copy-loading-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em" style="vertical-align: middle; animation: spin 1s linear infinite;"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>`;
+  const originalButtonIcon = copyIconSVG; 
+  const successButtonIcon = successIconSVG;
+  const loadingButtonIcon = loadingIconSVG;
 
   if (navigator.clipboard && navigator.clipboard.writeText) {
     try {
-      copyBtn.innerHTML = `${loadingIconSVG} Copying...`;
+      copyBtn.innerHTML = loadingButtonIcon;
       copyBtn.disabled = true;
       copyBtn.classList.add('copying');
 
       await navigator.clipboard.writeText(codeElement.textContent);
 
-      copyBtn.innerHTML = `${successIconSVG} Copied!`;
+      copyBtn.innerHTML = successButtonIcon;
       copyBtn.classList.remove('copying');
       copyBtn.classList.add('copied');
+      copyBtn.setAttribute('aria-label', 'Copied to clipboard');
 
       setTimeout(() => {
-        copyBtn.innerHTML = originalButtonContent;
+        copyBtn.innerHTML = originalButtonIcon;
         copyBtn.classList.remove('copied');
         copyBtn.disabled = false;
+        copyBtn.setAttribute('aria-label', 'Copy code to clipboard');
       }, 2000);
 
     } catch (err) {
-      copyBtn.innerHTML = 'Error';
+      copyBtn.innerHTML = originalButtonIcon; 
       copyBtn.classList.remove('copying');
       copyBtn.disabled = false;
-      setTimeout(() => {
-        copyBtn.innerHTML = originalButtonContent;
+      copyBtn.setAttribute('aria-label', 'Failed to copy');
+       setTimeout(() => {
+        copyBtn.setAttribute('aria-label', 'Copy code to clipboard');
       }, 2000);
     }
   } else {
@@ -155,14 +223,20 @@ async function copyWandboxCode(id) {
         document.execCommand('copy');
         document.body.removeChild(textArea);
 
-        copyBtn.innerHTML = `${successIconSVG} Copied!`;
+        copyBtn.innerHTML = successButtonIcon;
         copyBtn.classList.add('copied');
+        copyBtn.setAttribute('aria-label', 'Copied to clipboard');
         setTimeout(() => {
-            copyBtn.innerHTML = originalButtonContent;
+            copyBtn.innerHTML = originalButtonIcon;
             copyBtn.classList.remove('copied');
+            copyBtn.setAttribute('aria-label', 'Copy code to clipboard');
         }, 2000);
     } catch (err) {
-        copyBtn.innerHTML = originalButtonContent;
+        copyBtn.innerHTML = originalButtonIcon;
+        copyBtn.setAttribute('aria-label', 'Failed to copy');
+        setTimeout(() => {
+          copyBtn.setAttribute('aria-label', 'Copy code to clipboard');
+        }, 2000);
     }
   }
 }

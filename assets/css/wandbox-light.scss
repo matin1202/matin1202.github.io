@@ -91,43 +91,6 @@
     color: #24292f;
   }
 
-  .wandbox-copy-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4em;
-    padding: 0.35em 0.7em;
-    background-color: #f6f8fa;
-    color: #57606a;
-    border: 1px solid #1b1f2426;
-    border-radius: 0.3em;
-    cursor: pointer;
-    font-size: 0.85em;
-    transition: all 0.2s ease-in-out;
-  }
-
-  .wandbox-copy-btn svg {
-    fill: currentColor;
-  }
-
-  .wandbox-copy-btn:hover {
-    color: #24292f;
-    border-color: #8c959f;
-    background-color: #eaeef2;
-    transform: translateY(-1px);
-  }
-
-  .wandbox-copy-btn:active {
-    transform: translateY(0px);
-  }
-
-  .wandbox-copy-btn.copied,
-  .wandbox-copy-btn.copying {
-  }
-
-  .wandbox-copy-btn.copying svg {
-    animation: spin 1s linear infinite;
-  }
-
   .wandbox-stdin-container {
     margin-top: 0.8em;
     margin-bottom: 0.8em;
@@ -161,3 +124,20 @@
     outline: none;
     box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.3);
   }
+  
+  .wandbox-fold-btn {
+  background-color: #f6f8fa;
+  color: #57606a;
+  border: 1px solid #1b1f2426;
+}
+
+.wandbox-fold-btn:hover {
+  color: #24292f;
+  border-color: #8c959f;
+  background-color: #eaeef2;
+  transform: translateY(-1px);
+}
+
+.wandbox-fold-btn:active {
+  transform: translateY(0px);
+}

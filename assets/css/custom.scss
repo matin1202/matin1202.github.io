@@ -1,16 +1,101 @@
 ---
 ---
 
+@import 'wandbox-light';
+
 @media (prefers-color-scheme: dark) {
-  html:not([data-mode]) {
-    @import 'wandbox-dark.scss';
+  html:not([data-mode="light"]) {
+    @import 'wandbox-dark';
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  html[data-mode=light] {
-    @import 'wandbox-light.scss';
-  }
+html[data-mode="dark"] {
+  @import 'wandbox-dark';
+}
+
+.wandbox-header-buttons {
+  display: flex;
+  gap: 0.5em;
+  margin-left: auto;
+}
+
+.wandbox-fold-btn {
+  padding: 0.35em; 
+  width: 2em; 
+  height: 2em; 
+  display: inline-flex;
+  align-items: center;
+  justify-content: center; 
+  border-radius: 0.3em;
+  cursor: pointer;
+  font-size: 0.85em; 
+  line-height: 1;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
+}
+
+.wandbox-fold-btn svg {
+  fill: currentColor;
+  width: 1.2em; 
+  height: 1.2em;
+  transition: opacity 0.15s ease-in-out;
+}
+
+.wandbox-fold-btn.icon-swapping svg {
+  opacity: 0;
+}
+
+pre[id$="-code-pre"].folded {
+  display: none;
+}
+
+.wandbox-code-wrapper {
+  position: relative;
+  margin-top: 0.5em; 
+}
+
+.wandbox-copy-btn {
+  position: absolute;
+  top: 0.5em;
+  right: 0.5em;
+  z-index: 10;
+  padding: 0.2em;
+  width: 2.5em; 
+  height: 2.5em;
+  display: inline-flex; 
+  align-items: center;
+  justify-content: center; 
+  border-radius: 0.3em;
+  cursor: pointer;
+  font-size: 0.85em; 
+  line-height: 1;
+  opacity: 0.7;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease, transform 0.1s ease;
+
+  background-color: #30363d; 
+  color: #8b949e;
+  border: 1px solid #484f58; 
+}
+
+.wandbox-copy-btn svg {
+  fill: currentColor;
+  width: 2.8em; 
+  height: 2.8em;
+}
+
+.wandbox-copy-btn:hover {
+  opacity: 1;
+  color: #c9d1d9;
+  border-color: #8b949e;
+  background-color: #484f58; 
+  transform: scale(1.05);
+}
+
+.wandbox-copy-btn:active {
+  transform: scale(0.98);
+}
+
+.wandbox-copy-btn.copying svg {
+  animation: spin 1s linear infinite;
 }
 
 @keyframes pulse {

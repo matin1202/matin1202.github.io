@@ -1,7 +1,7 @@
 module Jekyll
   class WandboxTag < Liquid::Block
     @@index = 0
-    attr_reader :title_text, :stdin_placeholder_text
+    attr_reader :title_text, :stdin_placeholder_text, :stdin_default_value, :stdin_visible
 
     def initialize(tag_name, markup, parse_context)
       super
@@ -12,46 +12,96 @@ module Jekyll
       end
       @title_text ||= "C++ Code"
 
-      if stripped_markup =~ /stdin_placeholder=(?:"([^"]*)"|'([^']*)')/
-        @stdin_placeholder_text = ($1 || $2)&.strip
+      placeholder_markup_match = stripped_markup.match(/stdin_placeholder=(?:"([^"]*)"|'([^']*)')/)
+      if placeholder_markup_match
+        @stdin_placeholder_text = (placeholder_markup_match[1] || placeholder_markup_match[2])&.strip
+      else
+        @stdin_placeholder_text = "Enter standard input here (if any)..."
       end
-      @stdin_placeholder_text ||= "Enter standard input here (if any)..."
+      
+      value_markup_match = stripped_markup.match(/stdin_value=(?:"([^"]*)"|'([^']*)')/)
+      if value_markup_match
+        @stdin_default_value = (value_markup_match[1] || value_markup_match[2])
+      else
+        @stdin_default_value = ""
+      end
+
+      visibility_param_match = stripped_markup.match(/stdin_visible=(?:"([^"]*)"|'([^']*)')/i)
+      
+      if visibility_param_match
+        visibility_param_value = (visibility_param_match[1] || visibility_param_match[2])&.strip&.downcase
+        if visibility_param_value == "true"
+          @stdin_visible = true
+        elsif visibility_param_value == "false"
+          @stdin_visible = false
+        else
+          if placeholder_markup_match || value_markup_match
+            @stdin_visible = true
+          else
+            @stdin_visible = false
+          end
+        end
+      else
+        if placeholder_markup_match || value_markup_match
+          @stdin_visible = true
+        else
+          @stdin_visible = false
+        end
+      end
     end
 
     def render(context)
-      code = super.strip
-      index = (@@index += 1)
-      id = "wandbox-#{index}"
+      code_content = super.strip
+      @@index += 1
+      id_prefix = "wandbox-#{@@index}"
       
-      escaped_code = code.gsub('<', '&lt;').gsub('>', '&gt;')
-      
+      escaped_code = code_content.gsub('<', '&lt;').gsub('>', '&gt;')
+      code_line_count = code_content.lines.count
+      should_be_initially_folded = code_line_count > 30
+
       current_title_escaped = @title_text.gsub('<', '&lt;').gsub('>', '&gt;').gsub('"', '&quot;')
       current_stdin_placeholder_escaped = @stdin_placeholder_text.gsub('"', '&quot;')
+      current_stdin_default_value_escaped = @stdin_default_value.gsub('<', '&lt;').gsub('>', '&gt;')
 
-      <<~HTML
-        <div class="wandbox-block">
+      stdin_section_html = ""
+      if @stdin_visible
+        stdin_section_html = <<~STDIN_HTML
+          <div class="wandbox-stdin-container">
+            <label for="#{id_prefix}-stdin" class="wandbox-stdin-label">Standard Input (stdin):</label>
+            <textarea id="#{id_prefix}-stdin" class="wandbox-stdin-input" rows="3" placeholder="#{current_stdin_placeholder_escaped}" aria-label="Standard Input">#{current_stdin_default_value_escaped}</textarea>
+          </div>
+        STDIN_HTML
+      end
+
+      pre_code_id = "#{id_prefix}-code-pre"
+      pre_initial_class = should_be_initially_folded ? 'folded' : ''
+      copy_button_svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>'
+
+      html_output = <<~HTML
+        <div class="wandbox-block" data-line-count="#{code_line_count}">
           <div class="wandbox-header">
             <span class="wandbox-title">#{current_title_escaped}</span>
-            <button class="wandbox-copy-btn" id="#{id}-copy-btn" onclick="copyWandboxCode('#{id}')" aria-label="Copy code to clipboard">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em" style="vertical-align: middle;">
-                <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-              </svg>
-              Copy
+            <div class="wandbox-header-buttons">
+              <button class="wandbox-fold-btn" id="#{id_prefix}-fold-btn" onclick="toggleWandboxCode('#{id_prefix}')" aria-controls="#{pre_code_id}" aria-label="Toggle code visibility">
+              </button>
+            </div>
+          </div>
+          <div class="wandbox-code-wrapper">
+            <button class="wandbox-copy-btn" id="#{id_prefix}-copy-btn" onclick="copyWandboxCode('#{id_prefix}')" aria-label="Copy code to clipboard">
+              #{copy_button_svg}
             </button>
+            <pre id="#{pre_code_id}" class="#{pre_initial_class}"><code class="language-cpp" data-lang="cpp" id="#{id_prefix}-code">#{escaped_code}</code></pre>
           </div>
-          <pre><code class="language-cpp" data-lang="cpp" id="#{id}-code">#{escaped_code}</code></pre>
-          <div class="wandbox-stdin-container">
-            <label for="#{id}-stdin" class="wandbox-stdin-label">Standard Input (stdin):</label>
-            <textarea id="#{id}-stdin" class="wandbox-stdin-input" rows="3" placeholder="#{current_stdin_placeholder_escaped}" aria-label="Standard Input"></textarea>
-          </div>
+          #{stdin_section_html}
           <div class="wandbox-controls">
-            <button id="#{id}-run" onclick="runWandbox('#{id}')">▶ Run Code</button>
-            <span id="#{id}-loading" class="wandbox-loading" style="display: none;">⏳ Running...</span>
+            <button id="#{id_prefix}-run" onclick="runWandbox('#{id_prefix}')">▶ Run Code</button>
+            <span id="#{id_prefix}-loading" class="wandbox-loading" style="display: none;">⏳ Running...</span>
           </div>
-          <div id="#{id}-type" class="wandbox-type"></div>
-          <pre id="#{id}-output" class="wandbox-output"></pre>
+          <div id="#{id_prefix}-type" class="wandbox-type"></div>
+          <pre id="#{id_prefix}-output" class="wandbox-output"></pre>
         </div>
       HTML
+      return html_output
     end
   end
 end
