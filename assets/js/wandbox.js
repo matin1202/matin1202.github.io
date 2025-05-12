@@ -80,7 +80,6 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
-
 async function runWandbox(id_prefix) {
   const wandboxBlockElement = document.getElementById(id_prefix);
   const stdinTextarea = document.getElementById(`${id_prefix}-stdin`);
@@ -93,9 +92,10 @@ async function runWandbox(id_prefix) {
     return;
   }
   
-  const codeForApi = wandboxBlockElement.dataset.codeForApi;
+  let codeFromAttribute = wandboxBlockElement.dataset.codeForApi;
+  let actualCodeForApi = "";
 
-  if (typeof codeForApi === 'undefined') {
+  if (typeof codeFromAttribute === 'undefined') {
     typeEl.textContent = "Internal Error";
     typeEl.classList.add("compile-error");
     outputEl.textContent = "Code for API not found in data attribute.";
@@ -103,6 +103,9 @@ async function runWandbox(id_prefix) {
     loading.style.display = "none";
     return;
   }
+
+  const newlinePlaceholderRegex = /__WANDBOX_NEWLINE__/g;
+  actualCodeForApi = codeFromAttribute.replace(newlinePlaceholderRegex, "\n");
   
   const stdinValue = stdinTextarea ? stdinTextarea.value : "";
 
@@ -113,7 +116,7 @@ async function runWandbox(id_prefix) {
   typeEl.className = "wandbox-type";
 
   const body = {
-    code: codeForApi,
+    code: actualCodeForApi,
     compiler: "clang-17.0.1",
     options: "-O0 -std=c++2a",
     stdin: stdinValue,
@@ -121,6 +124,8 @@ async function runWandbox(id_prefix) {
   };
   
   console.log("Wandbox API Request Body:", JSON.stringify(body, null, 2));
+  console.log("Code sent to API:\n" + actualCodeForApi);
+
 
   try {
     const res = await fetch("https://wandbox.org/api/compile.json", {
@@ -182,6 +187,8 @@ async function runWandbox(id_prefix) {
     loading.style.display = "none";
   }
 }
+
+
 
 async function copyWandboxCode(id_prefix) {
   const codeElement = document.getElementById(`${id_prefix}-code`);

@@ -74,7 +74,6 @@ module Jekyll
       code_for_api.gsub!(/\/\/.*?$/, '')    
       code_for_api.gsub!(/^\s*[\r\n]+/, '') 
 
-
       code_for_display = ""
       display_code_source = full_code_content 
 
@@ -86,7 +85,11 @@ module Jekyll
       end
       
       escaped_code_for_display = code_for_display.gsub('<', '&lt;').gsub('>', '&gt;')
-      escaped_code_for_api_attr = CGI.escapeHTML(code_for_api)
+      
+      newline_placeholder = "__WANDBOX_NEWLINE__"
+      code_for_api_with_placeholders = code_for_api.gsub("\n", newline_placeholder)
+      code_for_api_with_placeholders.gsub!("\r", "") 
+      escaped_code_for_api_attr = CGI.escapeHTML(code_for_api_with_placeholders)
 
       code_display_line_count = code_for_display.lines.count
       
