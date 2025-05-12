@@ -67,14 +67,22 @@ module Jekyll
       id_prefix = "wandbox-#{@@index}"
       
       marker = "/* ** Start Here ** */"
+      
       code_for_api = full_code_content
-      code_for_display = ""
+      
+      code_for_api.gsub!(/\/\*.*?\*\//m, '') 
+      code_for_api.gsub!(/\/\/.*?$/, '')    
+      code_for_api.gsub!(/^\s*[\r\n]+/, '') 
 
-      if full_code_content.include?(marker)
-        parts = full_code_content.split(marker, 2)
+
+      code_for_display = ""
+      display_code_source = full_code_content 
+
+      if display_code_source.include?(marker)
+        parts = display_code_source.split(marker, 2)
         code_for_display = parts.last.lstrip
       else
-        code_for_display = full_code_content
+        code_for_display = display_code_source
       end
       
       escaped_code_for_display = code_for_display.gsub('<', '&lt;').gsub('>', '&gt;')
