@@ -116,11 +116,12 @@ async function runWandbox(id_prefix) {
   typeEl.className = "wandbox-type";
 
   const body = {
-    code: actualCodeForApi,
-    compiler: "clang-17.0.1",
-    options: "-O0 -std=c++2a",
-    stdin: stdinValue,
-    save: false
+    "code": actualCodeForApi,
+    "compiler": "gcc-head",
+    "options": "c++2a",
+    "compiler-option-raw": "-pthread",
+    "stdin": stdinValue,
+    "save": false
   };
   
   console.log("Wandbox API Request Body:", JSON.stringify(body, null, 2));
@@ -145,6 +146,8 @@ async function runWandbox(id_prefix) {
       if (text) outputEl.textContent += "\n\nRaw response:\n" + text;
       return;
     }
+    
+    // await navigator.clipboard.writeText(text);
 
     if (result.compiler_error || result.compiler_warning || result.compiler_message) {
       let compilerMessages = "";
