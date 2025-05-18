@@ -184,7 +184,7 @@ int main(){
 컴퓨터의 상태에 따라 다를 수 있지만, 오버헤드에 의해 동시 실행이 상대적으로 적은 작업의 수에서는 불리할 수 있습니다.
 
 #### 협력적 중단 
-협력적 중단(C++20 이상)은 스레드가 외부에서 강제로 종료시키는게 아니라, 스레드 스스로가 종료 요청을 받아 종료하는 것입니다.
+협력적 중단(C++20 이상)은 스레드를 외부에서 강제로 종료시키는게 아니라, 스레드 스스로가 종료 요청을 받아 종료하는 것입니다.
 1. 자원 관리 문제
 	스레드가 강제로 종료되면 스레드가 점유하고 있던 mutex, 메모리, 파일 핸들등의 자원이 해제되지 않을 수 있습니다.
 	이는 메모리 릭, 데드락 등을 유발 할 수 있습니다.
@@ -312,3 +312,260 @@ int main(){
   return 0;
 }
 {% endwandbox %}
+
+## mutex와 lock
+
+## atomic과 semaphore
+
+## future와 promise
+
+## 코루틴
+코루틴<span style="color: grey;"><sup>coroutine</sup></span>은 **함수를 중간에 일시정지했다가 나중에 다시 재개**할 수 있는 기능입니다.
+
+### 코루틴의 필요처
+1. IO 작업
+  네트워크 통신, 파일 입출력 등의 실행 시간이 긴 작업을 비동기적으로 실행해, 해당 스레드가 블록되지 않고 다른 작업을 수행할 수 있게 합니다.
+2. Generator
+  특정 시퀸스의 값을 생성하는 함수에 적합합니다.
+  예를 들어, 피보나치 수열을 생성하는 함수나 파일을 한줄씩 읽는 함수에서 일시정지와 재개의 반복을 통해 구현할 수 있습니다.
+3. 협력적 멀티테스킹
+  비교적 가벼운 작업을 수행하며, 스레드와 달리 OS가 아닌 어플리케이션 단위에서 실행 제어권을 서로 넘기며 수행됩니다.
+
+### 코루틴의 핵심 요소
+- `co_await`
+- `co_yield`
+- `co_return`
+
+### 코루틴 대 스레드
+
+#### 코루틴 대 스레드 코드 비교
+
+{% wandbox title="IO 흉내(스레드)" %}
+#include <iostream>
+#include <thread>
+#include <vector>
+#include <numeric>
+#include <chrono>
+#include <fstream>
+#include <string>
+
+using namespace std;
+using namespace chrono;
+
+constexpr size_t TASKS = 1000;
+constexpr size_t THREADS = 2;
+
+size_t getCurrentRSS() {
+    std::ifstream status_file("/proc/self/status");
+    std::string line;
+    while (std::getline(status_file, line)) {
+        if (line.rfind("VmRSS:", 0) == 0) {
+            size_t rss_kb;
+            sscanf(line.c_str(), "VmRSS: %zu kB", &rss_kb);
+            return rss_kb * 1024;
+        }
+    }
+    return 0;
+}
+
+void fake_io_task(int input, int& output) {
+    this_thread::sleep_for(1ms);
+    output = input * 2 + 1;
+}
+
+int main() {
+    // cout << "[Thread] Memory before: " << getCurrentRSS() / 1024 << " KB" << endl;
+    auto start = steady_clock::now();
+    vector<thread> threads;
+    vector<int> results(TASKS);
+    size_t per_thread = TASKS / THREADS;
+
+    for (size_t t = 0; t < THREADS; ++t) {
+        size_t start_i = t * per_thread;
+        size_t end_i = (t == THREADS - 1) ? TASKS : (t + 1) * per_thread;
+        threads.emplace_back([start_i, end_i, &results]() {
+            for (size_t i = start_i; i < end_i; ++i)
+                fake_io_task(i, results[i]);
+        });
+    }
+
+    for (auto& t : threads) t.join();
+    auto end = steady_clock::now();
+    int total = accumulate(results.begin(), results.end(), 0);
+
+    cout << "[Thread] Total: " << total << endl;
+    cout << "[Thread] Time: " << duration_cast<milliseconds>(end - start).count() << " ms" << endl;
+    // cout << "[Thread] Memory after: " << getCurrentRSS() / 1024 << " KB" << endl;
+}
+{% endwandbox %}
+
+{% wandbox title="IO 흉내(코루틴)" %}
+#include <boost/asio.hpp>
+#include <boost/asio/awaitable.hpp>
+#include <boost/asio/co_spawn.hpp>
+#include <boost/asio/detached.hpp>
+#include <boost/asio/steady_timer.hpp>
+#include <iostream>
+#include <vector>
+#include <chrono>
+#include <numeric>
+#include <fstream>
+#include <string>
+
+using namespace boost::asio;
+using namespace std::chrono;
+using namespace std;
+
+constexpr size_t TASKS = 1000;
+constexpr size_t THREADS = 2;
+
+size_t getCurrentRSS() {
+    std::ifstream status_file("/proc/self/status");
+    std::string line;
+    while (std::getline(status_file, line)) {
+        if (line.rfind("VmRSS:", 0) == 0) {
+            size_t rss_kb;
+            sscanf(line.c_str(), "VmRSS: %zu kB", &rss_kb);
+            return rss_kb * 1024;
+        }
+    }
+    return 0;
+}
+
+awaitable<int> fake_io_task(int input) {
+    steady_timer timer(co_await this_coro::executor);
+    timer.expires_after(1ms);
+    co_await timer.async_wait(use_awaitable);
+    int result = input * 2 + 1;
+    co_return result;
+}
+
+int main() {
+    // cout << "[Coroutine] Memory before: " << getCurrentRSS() / 1024 << " KB" << endl;
+    thread_pool pool(THREADS);
+    vector<int> results(TASKS);
+    auto start = steady_clock::now();
+
+    for (int i = 0; i < TASKS; ++i) {
+        co_spawn(pool,
+            [i, &results]() -> awaitable<void> {
+                results[i] = co_await fake_io_task(i);
+                co_return;
+            },
+            detached);
+    }
+
+    pool.join();
+
+    auto end = steady_clock::now();
+    int total = accumulate(results.begin(), results.end(), 0);
+
+    cout << "[Coroutine] Total: " << total << endl;
+    cout << "[Coroutine] Time: " << duration_cast<milliseconds>(end - start).count() << " ms" << endl;
+    // cout << "[Coroutine] Memory after: " << getCurrentRSS() / 1024 << " KB" << endl;
+}
+{% endwandbox %}
+
+1ms가 걸리는 가상의 IO 작업을 스레드에서 실행했을때와 코루틴을 이용해서 실행했을때 속도 차이가 명확히 드러납니다.
+
+#### 더보기
+1. 코루틴의 메모리 사용
+  > 코루틴은 스택 메모리를 거의 사용하지 않습니다.
+  - 일반 함수는 스택 프레임을 생성하고 종료시 제거합니다.
+  - 이에 반해 코루틴은 코루틴 프레임을 만들어 힙 메모리에 저장합니다.
+  - 이를 통해 코루틴은 일시정지와 재개를 구현 할 수 있습니다.
+  
+2. 코루틴 프레임<span style="color: grey;"><sup>coroutine frame</sup></span>
+  > 코루틴이 실행되면 **프레임**이라는 구조체를 힙 메모리에 생성합니다.
+  프레임은 다음으로 구성됩니다.
+    - 로컬 변수
+    - 중단점 위치 정보
+    - `promise` 객체
+    - 코루틴 핸들
+    - 리턴 `future`
+    
+3. State-Machine 구조
+  > 컴파일러는 코루틴을 State-Machine 형태로 변형시킵니다.
+  
+  ```cpp
+  task<void> foo() {
+    // 상태 'A'
+    co_await some_oper(); // 일시 정지 1
+    // 상태 'B'
+    co_await another_oper(); // 일시 정지 2
+    // 상태 'C'
+    co_return 1; // 최종 반환
+  }
+  ```
+  와 같은 기본적인 코루틴은 컴파일시
+  ```mermaid
+  ---
+  config:
+    look: handDrawn
+  ---
+  stateDiagram-v2
+    init: 코루틴 최초 호출, 프레임 할당
+    state0: co_await some_oper()까지 진행
+    await1: 코루틴 일시 중지됨. some_oper() 완료 대기 중
+    state1: co_await another_oper()까지 진행
+    await2: 코루틴 일시 중지됨. another_oper() 완료 대기 중
+    state2: co_return 까지 진행
+    state3: final_suspend.await_suspend(handle) 호출(암묵적 최종 일시 중지)
+    
+    
+    [*] --> init
+    init --> state0: 코루틴 시작, state = 0
+    state0 --> await1: co_await some_oper() 실행, some_oper()가 일시 중지를 호출하면
+    await1 --> state1: some_oper() 완료 후, 진입점 1에서 코루틴 재개, state = 1
+    state1 --> await2: co_await some_oper() 실행, some_oper()가 일시 중지를 호출하면
+    await2 --> state2: some_oper() 완료 후, 진입점 1에서 코루틴 재개, state = 2
+    state2 --> state3: co_return 호출, promise_return_int() 호출
+    state3 --> [*]: 코루틴 핸들 소멸, 프레임 해제
+  
+  ```
+  와 같이 컴파일링됩니다.
+  
+4. `co_await` 작동 방식
+  `co_await foo;`를 컴파일러는
+  ```cpp
+  auto&& awaitable = expr;
+  if (!awaitable.await_ready()) {
+    awaitable.await_suspend(coroutine_handle);
+    // 일시 중지됨
+  }
+  auto result = awaitable.await_resume();
+  ```
+  와 같이 처리합니다.
+  - `await_ready()` : awaitable이 바로 처리가능한지 확인합니다.
+  - `await_suspend()` : 현재 코루틴을 일시 중지시키고, awaitable이 완료되었을시 다시 재개 시킵니다.
+  - `await_resume()` : awaitable의 결과값을 가져옵니다.
+  
+  ```mermaid
+  ---
+  layout: handDrawn
+  ---
+  stateDiagram-v2
+     state if1 <<choice>>
+     state if2 <<choice>>
+     
+     [*] --> co_await
+     co_await --> await_ready
+     await_ready --> if1
+     if1 --> co_resume : if await_ready() == true
+     if1 --> co_suspend : if await_ready() == false
+     co_suspend --> if2
+     if2 --> 일시중지 : if co_suspend() return void or true
+     if2 --> co_resume: if co_suspend() return false
+     if2 --> other_coroutine_handle: if co_suspend() return coroutine_handle
+     other_coroutine_handle: Awaitable foo 일시 중지, 다른 코루틴 시작
+     일시중지 --> co_resume: Awaitable foo 실행 완료됨
+     co_resume --> [*]: 코루틴 재개
+  ```
+  
+5. `coroutine_handle`의 역할
+  > `std::coroutine_handle<>`은 프레임을 가리키는 포인터입니다.
+  
+  - `resume()` : 코루틴을 현재 위치에서 재개합니다.
+  - `destroy()` : 코루틴 프레임의 메모리를 해제합니다.
+  - `done()` : 코루틴이 끝났는지 확인합니다.
+  - `promise()` : 사용자의 Promise 객체에 접근합니다.

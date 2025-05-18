@@ -117,9 +117,9 @@ async function runWandbox(id_prefix) {
 
   const body = {
     "code": actualCodeForApi,
-    "compiler": "gcc-head",
-    "options": "c++2a",
-    "compiler-option-raw": "-pthread",
+    "compiler": "gcc-13.2.0",
+    "options": "c++2b, boost-1.83.0-gcc-13.2.0",
+    "compiler-option-raw": "-I/opt/wandbox/boost-1.83.0-gcc-13.2.0/include",
     "stdin": stdinValue,
     "save": false
   };
@@ -172,7 +172,7 @@ async function runWandbox(id_prefix) {
       errorOutput += "Error:\n" + result.program_error;
       outputEl.textContent = errorOutput.trim();
     } else {
-      typeEl.textContent = "성공";
+      typeEl.textContent = "System Output: ";
       typeEl.classList.add("success");
       let programResultText = "";
       if (result.program_output) {
