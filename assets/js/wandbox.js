@@ -8,7 +8,7 @@ const loadingIconSVG = `<svg class="copy-loading-icon" xmlns="http://www.w3.org/
 function setFoldButtonIcon(foldBtn, isFolded, animate) {
   if (!foldBtn) return;
   const newIcon = isFolded ? CHEVRON_DOWN_SVG : CHEVRON_UP_SVG;
-  
+
   if (animate) {
     foldBtn.classList.add('icon-swapping');
     setTimeout(() => {
@@ -45,10 +45,10 @@ function toggleWandboxCode(id_prefix) {
 
   const codeWrapper = preElement.parentElement;
   const copyBtn = codeWrapper ? codeWrapper.querySelector('.wandbox-copy-btn') : null;
-  
+
   preElement.classList.toggle('folded');
   const isNowFolded = preElement.classList.contains('folded');
-  
+
   setFoldButtonIcon(foldBtn, isNowFolded, true);
 
   if (isNowFolded) {
@@ -91,7 +91,9 @@ async function runWandbox(id_prefix) {
   if (!wandboxBlockElement || !runBtn || !loading || !typeEl || !outputEl) {
     return;
   }
-  
+
+  const lang = wandboxBlockElement.dataset.lang || "cpp";
+
   let codeFromAttribute = wandboxBlockElement.dataset.codeForApi;
   let actualCodeForApi = "";
 
@@ -106,7 +108,7 @@ async function runWandbox(id_prefix) {
 
   const newlinePlaceholderRegex = /__WANDBOX_NEWLINE__/g;
   actualCodeForApi = codeFromAttribute.replace(newlinePlaceholderRegex, "\n");
-  
+
   const stdinValue = stdinTextarea ? stdinTextarea.value : "";
 
   runBtn.disabled = true;
@@ -115,18 +117,38 @@ async function runWandbox(id_prefix) {
   outputEl.textContent = "";
   typeEl.className = "wandbox-type";
 
+  let compilerName = "";
+  let compilerOptions = "";
+  let compilerOptionRaw = "";
+
+  if (lang === "python") {
+    compilerName = "cpython-3.12.7";
+  } else if (lang === "cpp") {
+    compilerName = "gcc-13.2.0";
+    compilerOptions = "c++2b,boost-1.83.0-gcc-13.2.0";
+    compilerOptionRaw = "-I/opt/wandbox/boost-1.83.0-gcc-13.2.0/include";
+  } else {
+    typeEl.textContent = "Unsupported Language";
+    typeEl.classList.add("compile-error");
+    outputEl.textContent = `The language "${lang}" is not configured for Wandbox execution.`;
+    runBtn.disabled = false;
+    loading.style.display = "none";
+    return;
+  }
+
   const body = {
     "code": actualCodeForApi,
-    "compiler": "gcc-13.2.0",
-    "options": "c++2b, boost-1.83.0-gcc-13.2.0",
-    "compiler-option-raw": "-I/opt/wandbox/boost-1.83.0-gcc-13.2.0/include",
+    "compiler": compilerName,
     "stdin": stdinValue,
     "save": false
   };
-  
-  console.log("Wandbox API Request Body:", JSON.stringify(body, null, 2));
-  console.log("Code sent to API:\n" + actualCodeForApi);
 
+  if (compilerOptions) {
+    body["options"] = compilerOptions;
+  }
+  if (compilerOptionRaw) {
+    body["compiler-option-raw"] = compilerOptionRaw;
+  }
 
   try {
     const res = await fetch("https://wandbox.org/api/compile.json", {
@@ -144,39 +166,49 @@ async function runWandbox(id_prefix) {
       typeEl.classList.add("compile-error");
       outputEl.textContent = "Failed to parse Wandbox response.";
       if (text) outputEl.textContent += "\n\nRaw response:\n" + text;
+      runBtn.disabled = false;
+      loading.style.display = "none";
       return;
     }
-    
-    // await navigator.clipboard.writeText(text);
 
     if (result.compiler_error || result.compiler_warning || result.compiler_message) {
       let compilerMessages = "";
-      if(result.compiler_error) compilerMessages += "Error:\n" + result.compiler_error + "\n";
-      if(result.compiler_warning) compilerMessages += "Warning:\n" + result.compiler_warning + "\n";
-      
+      if (result.compiler_error) compilerMessages += "Error:\n" + result.compiler_error + "\n";
+      if (result.compiler_warning) compilerMessages += "Warning:\n" + result.compiler_warning + "\n";
+      if (result.compiler_message && (result.compiler_error || result.compiler_warning)) {
+         compilerMessages += "Message:\n" + result.compiler_message + "\n";
+      }
+
       outputEl.textContent = compilerMessages.trim();
 
-      if(result.compiler_error){
+      if (result.compiler_error) {
         typeEl.textContent = "컴파일 에러";
         typeEl.classList.add("compile-error");
       } else {
         typeEl.textContent = "컴파일 경고/메시지";
         typeEl.classList.add("runtime-error");
       }
-
     } else if (result.program_error) {
       typeEl.textContent = "런타임 에러";
       typeEl.classList.add("runtime-error");
       let errorOutput = "";
-      if(result.program_output) errorOutput += "Output before error:\n" + result.program_output + "\n\n";
+      if (result.program_output) errorOutput += "Output before error:\n" + result.program_output + "\n\n";
       errorOutput += "Error:\n" + result.program_error;
       outputEl.textContent = errorOutput.trim();
     } else {
       typeEl.textContent = "System Output: ";
+      if (result.compiler_message) {
+          typeEl.textContent += `(${result.compiler_message.trim()}) `;
+      }
       typeEl.classList.add("success");
       let programResultText = "";
       if (result.program_output) {
         programResultText = result.program_output;
+      }
+      if (result.status && result.status != 0 && !result.program_error) {
+         typeEl.textContent = "런타임 에러 (종료 코드: " + result.status + ")";
+         typeEl.classList.remove("success");
+         typeEl.classList.add("runtime-error");
       }
       outputEl.textContent = programResultText.trim() || "(No output)";
     }
@@ -191,17 +223,15 @@ async function runWandbox(id_prefix) {
   }
 }
 
-
-
 async function copyWandboxCode(id_prefix) {
   const codeElement = document.getElementById(`${id_prefix}-code`);
   const copyBtn = document.getElementById(`${id_prefix}-copy-btn`);
-  
+
   if (!codeElement || !copyBtn) {
     return;
   }
 
-  const originalButtonIcon = copyIconSVG; 
+  const originalButtonIcon = copyIconSVG;
   const successButtonIcon = successIconSVG;
   const loadingButtonIcon = loadingIconSVG;
 
@@ -226,7 +256,7 @@ async function copyWandboxCode(id_prefix) {
       }, 2000);
 
     } catch (err) {
-      copyBtn.innerHTML = originalButtonIcon; 
+      copyBtn.innerHTML = originalButtonIcon;
       copyBtn.classList.remove('copying');
       copyBtn.disabled = false;
       copyBtn.setAttribute('aria-label', 'Failed to copy');

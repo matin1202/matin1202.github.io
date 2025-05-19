@@ -3,16 +3,31 @@ require 'cgi'
 module Jekyll
   class WandboxTag < Liquid::Block
     @@index = 0
-    attr_reader :title_text, :stdin_placeholder_text, :stdin_default_value, :stdin_visible, :is_runnable, :explicit_folded_setting
+    attr_reader :title_text, :stdin_placeholder_text, :stdin_default_value, :stdin_visible, :is_runnable, :explicit_folded_setting, :lang
 
     def initialize(tag_name, markup, parse_context)
       super
       stripped_markup = markup.strip
 
+      if stripped_markup =~ /lang=(?:"([^"]*)"|'([^']*)')/
+        @lang = ($1 || $2)&.strip&.downcase
+      end
+      @lang ||= "cpp"
+
       if stripped_markup =~ /title=(?:"([^"]*)"|'([^']*)')/
         @title_text = ($1 || $2)&.strip
+      else
+        case @lang
+        when "python", "py"
+          @title_text = "Python Code"
+          @lang = "python"
+        when "cpp", "c++"
+          @title_text = "C++ Code"
+          @lang = "cpp"
+        else
+          @title_text = "Code"
+        end
       end
-      @title_text ||= "C++ Code"
 
       placeholder_markup_match = stripped_markup.match(/stdin_placeholder=(?:"([^"]*)"|'([^']*)')/)
       if placeholder_markup_match
@@ -20,7 +35,7 @@ module Jekyll
       else
         @stdin_placeholder_text = "Enter standard input here (if any)..."
       end
-      
+
       value_markup_match = stripped_markup.match(/stdin_value=(?:"([^"]*)"|'([^']*)')/)
       if value_markup_match
         @stdin_default_value = (value_markup_match[1] || value_markup_match[2])
@@ -42,7 +57,7 @@ module Jekyll
         @stdin_visible = (placeholder_markup_match || value_markup_match)
       end
 
-      @is_runnable = true 
+      @is_runnable = true
       if runnable_markup_match = stripped_markup.match(/runnable=(?:"([^"]*)"|'([^']*)')/i)
         runnable_val = (runnable_markup_match[1] || runnable_markup_match[2])&.strip&.downcase
         if runnable_val == "false"
@@ -65,17 +80,25 @@ module Jekyll
       full_code_content = super.strip
       @@index += 1
       id_prefix = "wandbox-#{@@index}"
-      
+
       marker = "/* ** Start Here ** */"
-      
+      if @lang == "python"
+        marker = "# ** Start Here **"
+      end
+
       code_for_api = full_code_content
-      
-      code_for_api.gsub!(/\/\*.*?\*\//m, '') 
-      code_for_api.gsub!(/\/\/.*?$/, '')    
-      code_for_api.gsub!(/^\s*[\r\n]+/, '') 
+
+      if @lang == "python"
+        code_for_api = code_for_api.gsub(/^#.*?$/, '')
+      else
+        code_for_api = code_for_api.gsub(/\/\*.*?\*\//m, '')
+        code_for_api = code_for_api.gsub(/\/\/.*?$/, '')
+      end
+      code_for_api = code_for_api.gsub(/^\s*[\r\n]+/, '')
+
 
       code_for_display = ""
-      display_code_source = full_code_content 
+      display_code_source = full_code_content
 
       if display_code_source.include?(marker)
         parts = display_code_source.split(marker, 2)
@@ -83,16 +106,16 @@ module Jekyll
       else
         code_for_display = display_code_source
       end
-      
+
       escaped_code_for_display = code_for_display.gsub('<', '&lt;').gsub('>', '&gt;')
-      
+
       newline_placeholder = "__WANDBOX_NEWLINE__"
       code_for_api_with_placeholders = code_for_api.gsub("\n", newline_placeholder)
-      code_for_api_with_placeholders.gsub!("\r", "") 
+      code_for_api_with_placeholders.gsub!("\r", "")
       escaped_code_for_api_attr = CGI.escapeHTML(code_for_api_with_placeholders)
 
       code_display_line_count = code_for_display.lines.count
-      
+
       should_be_initially_folded = false
       if @explicit_folded_setting == true
         should_be_initially_folded = true
@@ -107,7 +130,7 @@ module Jekyll
       current_stdin_default_value_escaped = @stdin_default_value.gsub('<', '&lt;').gsub('>', '&gt;')
 
       stdin_section_html = ""
-      if @is_runnable && @stdin_visible 
+      if @is_runnable && @stdin_visible
         stdin_section_html = <<~STDIN_HTML
           <div class="wandbox-stdin-container">
             <label for="#{id_prefix}-stdin" class="wandbox-stdin-label">Standard Input (stdin):</label>
@@ -118,10 +141,18 @@ module Jekyll
 
       controls_and_output_html = ""
       if @is_runnable
+        display_lang_name = @lang.dup
+        if display_lang_name == "cpp"
+          display_lang_name = "C++"
+        else
+          display_lang_name = display_lang_name.capitalize
+        end
+
         controls_and_output_html = <<~CONTROLS_OUTPUT_HTML
           <div class="wandbox-controls">
             <button id="#{id_prefix}-run" onclick="runWandbox('#{id_prefix}')">▶ Run Code</button>
             <span id="#{id_prefix}-loading" class="wandbox-loading" style="display: none;">⏳ Running...</span>
+            <span class="wandbox-lang-display">#{CGI.escapeHTML(display_lang_name)}</span>
           </div>
           <div id="#{id_prefix}-type" class="wandbox-type"></div>
           <pre id="#{id_prefix}-output" class="wandbox-output"></pre>
@@ -132,8 +163,10 @@ module Jekyll
       pre_initial_class = should_be_initially_folded ? 'folded' : ''
       copy_button_svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>'
 
+      code_language_class = "language-#{@lang}"
+
       html_output = <<~HTML
-        <div class="wandbox-block" id="#{id_prefix}" data-line-count="#{code_display_line_count}" data-code-for-api='#{escaped_code_for_api_attr}'>
+        <div class="wandbox-block" id="#{id_prefix}" data-line-count="#{code_display_line_count}" data-code-for-api='#{escaped_code_for_api_attr}' data-lang="#{@lang}">
           <div class="wandbox-header">
             <span class="wandbox-title">#{current_title_escaped}</span>
             <div class="wandbox-header-buttons">
@@ -145,7 +178,7 @@ module Jekyll
             <button class="wandbox-copy-btn" id="#{id_prefix}-copy-btn" onclick="copyWandboxCode('#{id_prefix}')" aria-label="Copy code to clipboard">
               #{copy_button_svg}
             </button>
-            <pre id="#{pre_code_id}" class="#{pre_initial_class}"><code class="language-cpp" data-lang="cpp" id="#{id_prefix}-code">#{escaped_code_for_display}</code></pre>
+            <pre id="#{pre_code_id}" class="#{pre_initial_class}"><code class="#{code_language_class}" data-lang="#{@lang}" id="#{id_prefix}-code">#{escaped_code_for_display}</code></pre>
           </div>
           #{stdin_section_html}
           #{controls_and_output_html}
