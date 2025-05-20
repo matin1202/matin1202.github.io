@@ -288,7 +288,7 @@ int main() {
 {% wandbox title="무한 정밀도 수(Python)" lang="python" stdin_value="10000" folded="true" %}
 def fibo(n: int):
 	if n == 0 or n == 1:
-		 return n;
+		return n;
 	a = 0
 	b = 1
 	for i in range(1, n):
