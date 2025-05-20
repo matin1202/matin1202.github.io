@@ -287,19 +287,19 @@ int main() {
 
 {% wandbox title="무한 정밀도 수(Python)" lang="python" stdin_value="10000" folded="true" %}
 def fibo(n: int):
-	if n == 0 or n == 1:
-		return n;
-	a = 0
-	b = 1
-	for i in range(1, n):
-		c = a + b;
-		a = b;
-		b = c;
-	return c;
+    if n == 0 or n == 1:
+        return n
+    a = 0
+    b = 1
+    for i in range(1, n):
+        c = a + b
+        a = b
+        b = c
+    return c
 	
 if __name__ == "__main__":
-	n = int(input())
-	print(fibo(n))
+    n = int(input())
+    print(fibo(n))
 {% endwandbox %}
 
 ## 15624번 피보나치 수 7 (실버 4)
