@@ -86,33 +86,20 @@ module Jekyll
         marker = "# ** Start Here **"
       end
 
-      code_for_api = full_code_content
+      code_for_api_attr_processing = full_code_content.dup
+      code_for_api_attr_processing.gsub!("\t", "__WANDBOX_TAB__")
+      code_for_api_attr_processing.gsub!("\n", "__WANDBOX_NEWLINE__")
+      code_for_api_attr_processing.gsub!("\r", "")
+      escaped_code_for_api_attr = CGI.escapeHTML(code_for_api_attr_processing)
 
-      if @lang == "python"
-        code_for_api = code_for_api.gsub(/^#.*?$/, '')
+      code_for_display_source = full_code_content
+      if code_for_display_source.include?(marker)
+        code_for_display = code_for_display_source.split(marker, 2).last
       else
-        code_for_api = code_for_api.gsub(/\/\*.*?\*\//m, '')
-        code_for_api = code_for_api.gsub(/\/\/.*?$/, '')
+        code_for_display = code_for_display_source
       end
-      code_for_api = code_for_api.gsub(/^\s*[\r\n]+/, '')
-
-
-      code_for_display = ""
-      display_code_source = full_code_content
-
-      if display_code_source.include?(marker)
-        parts = display_code_source.split(marker, 2)
-        code_for_display = parts.last.lstrip
-      else
-        code_for_display = display_code_source
-      end
-
+      code_for_display = code_for_display.gsub(/^\s*[\r\n]+/, '')
       escaped_code_for_display = code_for_display.gsub('<', '&lt;').gsub('>', '&gt;')
-
-      newline_placeholder = "__WANDBOX_NEWLINE__"
-      code_for_api_with_placeholders = code_for_api.gsub("\n", newline_placeholder)
-      code_for_api_with_placeholders.gsub!("\r", "")
-      escaped_code_for_api_attr = CGI.escapeHTML(code_for_api_with_placeholders)
 
       code_display_line_count = code_for_display.lines.count
 

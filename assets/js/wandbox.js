@@ -106,8 +106,9 @@ async function runWandbox(id_prefix) {
     return;
   }
 
-  const newlinePlaceholderRegex = /__WANDBOX_NEWLINE__/g;
-  actualCodeForApi = codeFromAttribute.replace(newlinePlaceholderRegex, "\n");
+  actualCodeForApi = codeFromAttribute.replace(/__WANDBOX_NEWLINE__/g, "\n");
+  actualCodeForApi = actualCodeForApi.replace(/__WANDBOX_TAB__/g, "\t");
+
 
   const stdinValue = stdinTextarea ? stdinTextarea.value : "";
 
