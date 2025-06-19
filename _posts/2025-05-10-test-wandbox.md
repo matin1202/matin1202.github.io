@@ -1,5 +1,5 @@
 ---
-title: "Wandbox 테스트"
+title: "Liquid Tag 테스트"
 date: 2025-05-10 20:00:00 +0900
 tags: [C++, Wandbox, Chirpy]
 ---
@@ -55,3 +55,46 @@ int main(){
   return 0;
 }
 ```
+
+
+다음은 상태 다이어그램의 변화를 보여주는 애니메이션입니다. 각 프레임은 2초 간격(`interval="2000"`)으로 재생됩니다.
+
+{% mermaid_animation interval="2000" title="프로세스 상태 변화" %}
+stateDiagram-v2
+    [*] --> Still
+    Still --> [*]
+
+    Still --> Moving
+    Moving --> Still
+    Moving --> Crash
+    Crash --> [*]
+
+---
+
+stateDiagram-v2
+    direction LR
+    [*] --> Active
+
+    state Active {
+        [*] --> NumLockOff
+        NumLockOff --> NumLockOn : EvNumLockPressed
+        NumLockOn --> NumLockOff : EvNumLockPressed
+        --
+        [*] --> CapsLockOff
+        CapsLockOff --> CapsLockOn : EvCapsLockPressed
+        CapsLockOn --> CapsLockOff : EvCapsLockPressed
+        --
+        [*] --> ScrollLockOff
+        ScrollLockOff --> ScrollLockOn : EvScrollLockPressed
+        ScrollLockOn --> ScrollLockOff : EvScrollLockPressed
+    }
+
+---
+
+graph TD
+    A[Christmas] -->|Get money| B(Go shopping)
+    B --> C{Let me think}
+    C -->|One| D[Laptop]
+    C -->|Two| E[iPhone]
+    C -->|Three| F[fa:fa-car Car]
+{% endmermaid_animation %}
