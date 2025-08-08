@@ -6,12 +6,10 @@ tags: [C++, Wandbox, Chirpy]
 
 다음은 Wandbox와 연동된 테스트입니다.
 
-{% wandbox title="hello-wandbox" %}
-#include <iostream>
-int main() {
-  std::cout << "Hello from Wandbox!" << std::endl;
-  return 0;
-}
+{% link_preview "https://www.google.com" %}
+
+{% wandbox lang="cpp" file="main.cpp" stdin_visible="true" %}
+파일로부터 코드를 불러옵니다. 이 내용은 무시됩니다.
 {% endwandbox %}
 
 {% wandbox title="compile-error" %}

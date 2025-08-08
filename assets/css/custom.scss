@@ -1,16 +1,25 @@
 ---
 ---
+@use 'link-preview';
+@use 'wandbox-light';
+@use 'wandbox-dark';
+@use 'mermaid-light';
+@use 'mermaid-dark';
 
-@import 'wandbox-light';
+/* Google Fonts - JetBrains Mono */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+
+code[class*="language-"],
+pre[class*="language-"] {
+  font-family: "JetBrains Mono", Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace !important;
+}
 
 @media (prefers-color-scheme: dark) {
   html:not([data-mode="light"]) {
-    @import 'wandbox-dark';
   }
 }
 
 html[data-mode="dark"] {
-  @import 'wandbox-dark';
 }
 
 .wandbox-header-buttons {
@@ -171,18 +180,4 @@ pre[id$="-code-pre"].folded {
       white-space: pre-wrap;
     }
   }
-}
-
-// 기본(라이트) 테마 불러오기
-@import 'mermaid-light';
-
-// 다크 모드 조건에 따라 다크 테마 불러오기
-@media (prefers-color-scheme: dark) {
-  html:not([data-mode='light']) {
-    @import 'mermaid-dark';
-  }
-}
-
-html[data-mode='dark'] {
-  @import 'mermaid-dark';
 }

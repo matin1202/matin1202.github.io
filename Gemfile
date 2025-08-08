@@ -3,6 +3,9 @@
 source "https://rubygems.org"
 
 gem "jekyll-theme-chirpy", "~> 7.2", ">= 7.2.4"
+gem "httparty", "~> 0.21.0"
+gem "nokogiri", "~> 1.15.4"
+
 
 gem "html-proofer", "~> 5.0", group: :test
 

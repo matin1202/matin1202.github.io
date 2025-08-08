@@ -21,6 +21,16 @@
       },
       "problemMatcher": [],
       "detail": "Build the Jekyll site for production."
+    },
+    {
+      "label": "build main",
+      "type": "shell",
+      "command": "g++ main.cpp -o main",
+      "group": "build",
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "detail": "Compile main.cpp into an executable named main"
     }
   ]
 }

@@ -1,29 +1,21 @@
 {
-  "name": "Jekyll",
-  "image": "mcr.microsoft.com/devcontainers/jekyll:2-bullseye",
-  "onCreateCommand": "git config --global --add safe.directory ${containerWorkspaceFolder}",
-  "postCreateCommand": "bash .devcontainer/post-create.sh",
-  "customizations": {
-    "vscode": {
-      "settings": {
-        "terminal.integrated.defaultProfile.linux": "zsh"
-      },
-      "extensions": [
-        // Liquid tags auto-complete
-        "killalau.vscode-liquid-snippets",
-        // Liquid syntax highlighting and formatting
-        "Shopify.theme-check-vscode",
-        // Shell
-        "timonwong.shellcheck",
-        "mkhl.shfmt",
-        // Common formatter
-        "EditorConfig.EditorConfig",
-        "esbenp.prettier-vscode",
-        "stylelint.vscode-stylelint",
-        "yzhang.markdown-all-in-one",
-        // Git
-        "mhutchie.git-graph"
-      ]
-    }
-  }
+    "name": "C++ Development Environment",
+    "image": "mcr.microsoft.com/devcontainers/cpp:0-ubuntu-22.04",
+    "features": {
+        "ghcr.io/devcontainers/features/common-utils:2": {}
+    },
+    "postCreateCommand": "sudo apt-get update && sudo apt-get install -y gdb",
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "terminal.integrated.shell.linux": "/bin/bash"
+            },
+            "extensions": [
+                "ms-vscode.cpptools",
+                "ms-vscode.cmake-tools",
+                "vadimcn.vscode-lldb"
+            ]
+        }
+    },
+    "remoteUser": "vscode"
 }

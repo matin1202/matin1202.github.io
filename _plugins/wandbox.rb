@@ -3,7 +3,7 @@ require 'cgi'
 module Jekyll
   class WandboxTag < Liquid::Block
     @@index = 0
-    attr_reader :title_text, :stdin_placeholder_text, :stdin_default_value, :stdin_visible, :is_runnable, :explicit_folded_setting, :lang
+    attr_reader :title_text, :stdin_placeholder_text, :stdin_default_value, :stdin_visible, :is_runnable, :explicit_folded_setting, :lang, :file
 
     def initialize(tag_name, markup, parse_context)
       super
@@ -13,19 +13,27 @@ module Jekyll
         @lang = ($1 || $2)&.strip&.downcase
       end
       @lang ||= "cpp"
+      
+      if stripped_markup =~ /file=(?:"([^"]*)"|'([^']*)')/
+        @file = ($1 || $2)&.strip
+      end
 
       if stripped_markup =~ /title=(?:"([^"]*)"|'([^']*)')/
         @title_text = ($1 || $2)&.strip
       else
-        case @lang
-        when "python", "py"
-          @title_text = "Python Code"
-          @lang = "python"
-        when "cpp", "c++"
-          @title_text = "C++ Code"
-          @lang = "cpp"
+        if @file
+          @title_text = @file
         else
-          @title_text = "Code"
+            case @lang
+            when "python", "py"
+              @title_text = "Python Code"
+              @lang = "python"
+            when "cpp", "c++"
+              @title_text = "C++ Code"
+              @lang = "cpp"
+            else
+              @title_text = "Code"
+            end
         end
       end
 
@@ -77,30 +85,76 @@ module Jekyll
     end
 
     def render(context)
-      full_code_content = super.strip
+      # 1. Get the raw content inside the wandbox block (this could be code + STDIN or just code)
+      block_content_raw = super
+      stdin_marker = "---STDIN---"
+
+      code_to_compile_and_display = ""
+      stdin_for_textarea = @stdin_default_value # Initialize from attribute, if present
+
+      # 2. Parse the block_content_raw for STDIN marker
+      if block_content_raw.include?(stdin_marker)
+        parts = block_content_raw.split(stdin_marker, 2)
+        code_content_from_block = parts[0].strip
+        stdin_content_from_block = parts[1].strip
+
+        # If stdin_value attribute was NOT explicitly set, use content from block
+        if @stdin_default_value.empty?
+          stdin_for_textarea = stdin_content_from_block
+          @stdin_visible = true # Make stdin visible if content is provided in block
+        end
+      else
+        # No STDIN marker in block, so the whole block content is potential code
+        code_content_from_block = block_content_raw.strip
+      end
+
+      # 3. Determine the final code content (from file or from block)
+      if @file
+        begin
+          source = context.registers[:site].source
+          file_path_full = ""
+
+          if @file && !(@file.include?('/') || @file.include?(File::SEPARATOR))
+            file_path_full = File.join(source, "_cpps", @file)
+          else
+            file_path_full = File.join(source, @file)
+          end
+
+          if File.exist?(file_path_full)
+            code_to_compile_and_display = File.read(file_path_full).strip
+          else
+            Jekyll.logger.error "WandboxTag Error:", "File not found at '#{file_path_full}'"
+            return "<p style='color: red; font-weight: bold;'>Wandbox Error: File '#{@file}' not found.</p>"
+          end
+        rescue => e
+          Jekyll.logger.error "WandboxTag Error:", "Could not read file '#{@file}'. Details: #{e.message}"
+          return "<p style='color: red; font-weight: bold;'>Wandbox Error: Could not read file '#{@file}'.</p>"
+        end
+      else
+        # If no file attribute, code comes from the block (before STDIN marker if present)
+        code_to_compile_and_display = code_content_from_block
+      end
+
+      # ... rest of the HTML generation logic ...
       @@index += 1
       id_prefix = "wandbox-#{@@index}"
-
       marker = "/* ** Start Here ** */"
       if @lang == "python"
         marker = "# ** Start Here **"
       end
 
-      code_for_api_attr_processing = full_code_content.dup
+      code_for_api_attr_processing = code_to_compile_and_display.dup
       code_for_api_attr_processing.gsub!("\t", "__WANDBOX_TAB__")
       code_for_api_attr_processing.gsub!("\n", "__WANDBOX_NEWLINE__")
       code_for_api_attr_processing.gsub!("\r", "")
       escaped_code_for_api_attr = CGI.escapeHTML(code_for_api_attr_processing)
 
-      code_for_display_source = full_code_content
-      if code_for_display_source.include?(marker)
-        code_for_display = code_for_display_source.split(marker, 2).last
-      else
-        code_for_display = code_for_display_source
+      code_for_display = code_to_compile_and_display
+      if code_for_display.include?(marker)
+        code_for_display = code_for_display.split(marker, 2).last
       end
       code_for_display = code_for_display.gsub(/^\s*[\r\n]+/, '')
       escaped_code_for_display = code_for_display.gsub('<', '&lt;').gsub('>', '&gt;')
-
       code_display_line_count = code_for_display.lines.count
 
       should_be_initially_folded = false
@@ -114,7 +168,7 @@ module Jekyll
 
       current_title_escaped = @title_text.gsub('<', '&lt;').gsub('>', '&gt;').gsub('"', '&quot;')
       current_stdin_placeholder_escaped = @stdin_placeholder_text.gsub('"', '&quot;')
-      current_stdin_default_value_escaped = @stdin_default_value.gsub('<', '&lt;').gsub('>', '&gt;')
+      current_stdin_default_value_escaped = stdin_for_textarea.gsub('<', '&lt;').gsub('>', '&gt;') # Use stdin_for_textarea here
 
       stdin_section_html = ""
       if @is_runnable && @stdin_visible
@@ -149,7 +203,6 @@ module Jekyll
       pre_code_id = "#{id_prefix}-code-pre"
       pre_initial_class = should_be_initially_folded ? 'folded' : ''
       copy_button_svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>'
-
       code_language_class = "language-#{@lang}"
 
       html_output = <<~HTML
@@ -171,7 +224,7 @@ module Jekyll
           #{controls_and_output_html}
         </div>
       HTML
-      return html_output
+      return html_output.strip
     end
   end
 end
