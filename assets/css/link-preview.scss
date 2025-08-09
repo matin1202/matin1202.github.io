@@ -26,3 +26,22 @@
   margin-left: 8px;
   opacity: 0.7;
 }
+
+/* Dark Mode Styles */
+html[data-mode="dark"] {
+  .pretty-link {
+    color: #c9d1d9;
+    background-color: #161b22;
+    border-color: #30363d;
+  }
+
+  .pretty-link:hover {
+    background-color: #21262d;
+    color: #f0f6fc;
+    border-color: #484f58;
+  }
+
+  .pretty-link::after {
+    opacity: 0.8;
+  }
+}

@@ -168,7 +168,8 @@ module Jekyll
 
       current_title_escaped = @title_text.gsub('<', '&lt;').gsub('>', '&gt;').gsub('"', '&quot;')
       current_stdin_placeholder_escaped = @stdin_placeholder_text.gsub('"', '&quot;')
-      current_stdin_default_value_escaped = stdin_for_textarea.gsub('<', '&lt;').gsub('>', '&gt;') # Use stdin_for_textarea here
+      # Escape newlines for textarea value to ensure they render correctly in HTML
+      current_stdin_default_value_escaped = stdin_for_textarea.gsub('<', '&lt;').gsub('>', '&gt;').gsub("\n", "&#x0A;")
 
       stdin_section_html = ""
       if @is_runnable && @stdin_visible
