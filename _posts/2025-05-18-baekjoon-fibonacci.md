@@ -3,7 +3,8 @@ title: 백준 피보나치 수열
 author: matin1202
 date: 2025-05-17 12:30:00
 layout: post
-categories: [C++, BaekJoon]
+categories: [BaekJoon]
+tags: ["C++", "BaekJoon", "Dynamic Programming"]
 ---
 
 ## 2747번 피보나치 수

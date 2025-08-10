@@ -29,3 +29,6 @@ assets/js/dist
 # IDX
 .idx
 .idx/*
+
+#Prompt
+_posts/prompt.txt
