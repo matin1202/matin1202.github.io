@@ -1,0 +1,100 @@
+<!-- 반송파 시각화 위젯 시작 -->
+<div id="carrier-widget-container" style="max-width: 600px; margin: 30px auto; font-family: sans-serif; border: 1px solid #e1e4e8; padding: 20px; border-radius: 12px; background-color: #ffffff; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+  <h4 style="margin-top: 0; margin-bottom: 15px; color: #24292e; text-align: center;">반송파(Carrier Wave) 3대 요소 제어</h4>
+  
+  <canvas id="carrier-canvas" width="600" height="220" style="width: 100%; border: 1px solid #e1e4e8; border-radius: 6px; background: #fafbfc;"></canvas>
+  
+  <div style="margin-top: 20px;">
+    <!-- 진폭 조절 -->
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+      <label style="font-weight: 600; font-size: 14px; width: 140px; color: #444;">진폭 (Amplitude): <span id="amp-val" style="color: #0366d6;">1.0</span></label>
+      <input type="range" id="slider-amp" min="10" max="90" value="50" style="width: 65%;">
+    </div>
+    
+    <!-- 주파수 조절 -->
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+      <label style="font-weight: 600; font-size: 14px; width: 140px; color: #444;">주파수 (Frequency): <span id="freq-val" style="color: #0366d6;">5</span> Hz</label>
+      <input type="range" id="slider-freq" min="1" max="25" value="6" style="width: 65%;">
+    </div>
+    
+    <!-- 위상 조절 -->
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+      <label style="font-weight: 600; font-size: 14px; width: 140px; color: #444;">위상 (Phase): <span id="phase-val" style="color: #0366d6;">0</span>°</label>
+      <input type="range" id="slider-phase" min="0" max="360" value="0" style="width: 65%;">
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const canvas = document.getElementById('carrier-canvas');
+  const ctx = canvas.getContext('2d');
+  
+  const sliderAmp = document.getElementById('slider-amp');
+  const sliderFreq = document.getElementById('slider-freq');
+  const sliderPhase = document.getElementById('slider-phase');
+
+  const valAmp = document.getElementById('amp-val');
+  const valFreq = document.getElementById('freq-val');
+  const valPhase = document.getElementById('phase-val');
+
+  let timeOffset = 0; // 시간 흐름에 따른 애니메이션 오프셋
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const width = canvas.width;
+    const height = canvas.height;
+    const centerY = height / 2;
+
+    // 슬라이더 값 가져오기
+    const A = parseFloat(sliderAmp.value);          // 진폭 (픽셀 값)
+    const f = parseFloat(sliderFreq.value);         // 주파수 (화면 안에 그릴 주기 횟수)
+    const phiDeg = parseFloat(sliderPhase.value);   // 위상 (도)
+    const phi = (phiDeg * Math.PI) / 180;           // 위상 (라디안 변환)
+
+    // 수치 레이블 업데이트
+    valAmp.innerText = (A / 50).toFixed(1);         // 기본값 50을 1.0 기준으로 표기
+    valFreq.innerText = f;
+    valPhase.innerText = phiDeg;
+
+    // 중심선(기준선) 그리기
+    ctx.strokeStyle = '#e1e4e8';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(0, centerY);
+    ctx.lineTo(width, centerY);
+    ctx.stroke();
+    ctx.setLineDash([]); // 대시 설정 초기화
+
+    // 사인파 그리기
+    ctx.strokeStyle = '#0366d6'; // 깃허브 시그니처 블루 색상
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+
+    for (let x = 0; x < width; x++) {
+      // 2 * PI * f * (x / width) 로 전체 너비 내에서 f만큼의 주기가 반복되게 설정
+      // - phi 로 사용자가 지정한 위상 제어
+      // - timeOffset 으로 우측에서 좌측으로 이동하는 동적 흐름 표현
+      const theta = (2 * Math.PI * f * x) / width - phi - timeOffset;
+      const y = centerY - A * Math.sin(theta);
+
+      if (x === 0) {
+        ctx.moveTo(x, y);
+      } else {
+        ctx.lineTo(x, y);
+      }
+    }
+    ctx.stroke();
+
+    // 시간 오프셋을 조절하여 파형이 실시간으로 이동하는 연출
+    timeOffset += 0.04;
+
+    requestAnimationFrame(draw);
+  }
+
+  draw();
+})();
+</script>
+<!-- 반송파 시각화 위젯 끝 -->
